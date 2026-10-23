@@ -330,8 +330,8 @@ function checkWire(doc, req) {
     S = {
       stage: "open", contract: null, edited: false, minute: 0,
       grants: [
-        { id: "G-1", text: "The agent may change the files its contract names", on: false, by: "Given by the contract" },
-        { id: "G-2", text: "The agent may open a pull request", on: false, by: "Given by a person" },
+        { id: "G-1", text: "The agent may change the files its contract names", on: false, by: "Comes with the contract; a person can revoke it" },
+        { id: "G-2", text: "The agent may open a pull request", on: false, by: "Only a person can grant it" },
       ],
       receipts: [],
     };
@@ -392,9 +392,11 @@ function checkWire(doc, req) {
   function render() {
     $("c-write").disabled = !!S.contract;
     ["c-steps", "c-paths", "c-accept"].forEach((id) => ($(id).disabled = !!S.contract));
-    $("grants").innerHTML = S.grants.map((g) => `<label class="grant"><input type="checkbox" data-g="${g.id}" ${g.on ? "checked" : ""}>
-      <div><div>${g.id} · ${esc(g.text)}</div><div class="who">${g.by}</div></div></label>`).join("");
-    $("grants").querySelectorAll("input").forEach((i) => (i.onchange = () => act(ops.toggle)(i.dataset.g, i.checked)));
+    $("grants").innerHTML = S.grants.map((g) => `<div class="grant">
+      <span class="badge ${g.on ? "ok" : "no"}">${g.on ? "granted" : "not granted"}</span>
+      <div class="grant-body"><div>${g.id} · ${esc(g.text)}</div><div class="who">${g.by}</div>
+      <button class="btn person small" data-g="${g.id}">${g.on ? "Person: revoke" : "Person: grant"}</button></div></div>`).join("");
+    $("grants").querySelectorAll("button").forEach((btn) => (btn.onclick = () => { const g = grant(btn.dataset.g); act(ops.toggle)(g.id, !g.on); }));
 
     const idx = STAGES.indexOf(S.stage);
     $("t-title").textContent = "Task T-14 · invoice export dates";
