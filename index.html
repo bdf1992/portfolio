@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brandon Freeman</title>
+<meta name="description" content="Three small demos of AI operating environments: bounded agents, one rule set across a UI, API and MCP server, and authority from explicit grants with a receipt for every action.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="bar" aria-label="Canvas">
+  <div class="pill" id="jump">
+    <button data-go="all">Overview</button>
+    <button data-go="r1">1 · Bounded agents</button>
+    <button data-go="r2">2 · One rule set</button>
+    <button data-go="r3">3 · Grants and receipts</button>
+  </div>
+  <div class="pill zoom-only">
+    <button id="zoom-out" aria-label="Zoom out">−</button>
+    <button id="zoom-in" aria-label="Zoom in">+</button>
+  </div>
+  <div class="pill">
+    <button id="mode" aria-pressed="false">Reading view</button>
+  </div>
+  <span class="hint zoom-only">Drag to move · scroll or pinch to zoom</span>
+</nav>
+
+<main class="viewport" id="viewport">
+<div class="world" id="world">
+  <svg class="wires" id="wires" width="1" height="1"></svg>
+
+  <!-- ===================== intro ===================== -->
+  <article class="card intro" id="intro" style="--x:1490px;--y:0px;--w:620px">
+    <h1>Brandon Freeman</h1>
+    <p class="muted">Product Manager at Print Reach · <a href="https://github.com/bdf1992">github.com/bdf1992</a> · <a href="mailto:bdf1992.fb@gmail.com">bdf1992.fb@gmail.com</a></p>
+    <p class="lede">I build environments where people and AI agents work on the same records under the same rules. These are three small demos of how I approach that.</p>
+    <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo.</p>
+  </article>
+
+  <!-- ===================== region 1 ===================== -->
+  <section class="frame" id="r1" style="--x:0px;--y:460px;--w:1120px;--h:920px">
+    <header><h2>1 · Bounded agents</h2><span class="chip">A mock of the agent system I run at work</span></header>
+  </section>
+
+  <article class="card graph" id="r1-graph" style="--x:40px;--y:540px;--w:580px">
+    <h3>The graph the agent runs on</h3>
+    <p class="small muted">Each step is decided ahead of time to be run by a model, by exact logic, or by a person. Loops are allowed, and every loop has a limit.</p>
+    <div id="graph"></div>
+    <div class="loops" id="loops"></div>
+  </article>
+
+  <article class="card" id="r1-case" style="--x:660px;--y:540px;--w:420px">
+    <h3>The case</h3>
+    <div class="stack">
+      <label class="field">Pick a request
+        <select id="case-pick"></select>
+      </label>
+      <div id="case-body" class="small"></div>
+      <div class="row">
+        <button class="btn primary" id="step">Run next step</button>
+        <button class="btn" id="run">Run to the next stop</button>
+        <button class="btn" id="reset">Start over</button>
+      </div>
+      <div id="confirm"></div>
+      <ul class="log" id="log"></ul>
+    </div>
+  </article>
+
+  <article class="card note" id="r1-note" style="--x:40px;--y:1050px;--w:580px">
+    <h3>What is real here</h3>
+    <p class="small">At Print Reach I launched and still own an internal AI agent system that runs across four products and handles about 5,000 conversations a month. The ideas on this card are the ones it is built on: a graph engine with loops bounds each step, the context each step gets is chosen rather than left to the model, a person confirms the decisions that matter, and every action and its result stays on the case.</p>
+    <p class="small muted">This page shows none of the real system. The graph, the requests and the replies are invented.</p>
+  </article>
+
+  <!-- ===================== region 2 ===================== -->
+  <section class="frame" id="r2" style="--x:1240px;--y:460px;--w:1120px;--h:920px">
+    <header><h2>2 · One rule set</h2><span class="chip">Schematically · open source, in beta</span></header>
+  </section>
+
+  <article class="card" id="r2-ask" style="--x:1280px;--y:540px;--w:420px">
+    <h3>Ask for a connection</h3>
+    <p class="small muted">The same request goes to all three surfaces. Change it and ask again, or click two boxes in the diagram.</p>
+    <div class="stack">
+      <div class="row">
+        <label class="field">From <select id="w-from"></select></label>
+        <label class="field">To <select id="w-to"></select></label>
+        <label class="field">Access <select id="w-access"><option value="read">read</option><option value="write">write</option></select></label>
+      </div>
+      <label class="toggle small"><input type="checkbox" id="w-port"> Put a port on the private network's boundary</label>
+      <label class="field">That port allows
+        <select id="w-port-access" disabled><option value="read">read only</option><option value="readwrite">read and write</option></select>
+      </label>
+      <button class="btn primary" id="w-ask">Ask all three</button>
+      <div id="w-same"></div>
+    </div>
+  </article>
+
+  <article class="card" id="r2-rule" style="--x:1740px;--y:540px;--w:580px">
+    <h3>The rule, written once</h3>
+    <p class="small muted">The UI, the HTTP API and the MCP server all call this one function. None of them has its own copy of the rule.</p>
+    <pre id="rule-src" style="max-height:210px"></pre>
+    <p class="small" style="margin-top:10px">In <a href="https://github.com/bdf1992/schematically">Schematically</a> a diagram is a model, not a drawing: boxes, boundaries, ports and wires with rules about what may connect. People edit it in the browser and agents edit it over HTTP or MCP, and every surface enforces the same rules, so a person and an agent get the same answer. This card is a small reconstruction of that idea, not the editor itself.</p>
+  </article>
+
+  <article class="card schem" id="r2-ui" style="--x:1280px;--y:1000px;--w:340px">
+    <h3>In the editor <span class="badge exact">person</span></h3>
+    <div id="schem"></div>
+    <div class="verdict" id="v-ui"></div>
+  </article>
+
+  <article class="card" id="r2-api" style="--x:1640px;--y:1000px;--w:340px">
+    <h3>Over HTTP <span class="badge exact">program</span></h3>
+    <pre id="v-api">—</pre>
+  </article>
+
+  <article class="card" id="r2-mcp" style="--x:2000px;--y:1000px;--w:340px">
+    <h3>Through MCP <span class="badge model">agent</span></h3>
+    <pre id="v-mcp">—</pre>
+  </article>
+
+  <!-- ===================== region 3 ===================== -->
+  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:920px">
+    <header><h2>3 · Grants and receipts</h2><span class="chip">Soveraeign and my workstation · experimental</span></header>
+  </section>
+
+  <article class="card" id="r3-contract" style="--x:2520px;--y:540px;--w:340px">
+    <h3>Define an agent's job</h3>
+    <p class="small muted">A person writes a contract: what to do, which files it may touch, how the result is checked, and the most the agent may claim.</p>
+    <div class="stack">
+      <label class="field">Steps<textarea id="c-steps" rows="2">Fix the date format in the invoice export.</textarea></label>
+      <label class="field">May change<input type="text" id="c-paths" value="src/export.py, tests/test_export.py"></label>
+      <label class="field">Checked by<input type="text" id="c-accept" value="pytest tests/test_export.py"></label>
+      <label class="field">Most it may claim
+        <select id="c-ceiling"><option value="tested">tested</option></select>
+      </label>
+      <button class="btn person primary" id="c-write">Person: write the contract</button>
+    </div>
+  </article>
+
+  <article class="card" id="r3-grants" style="--x:2900px;--y:540px;--w:320px">
+    <h3>Grants</h3>
+    <p class="small muted">An action is allowed only when a live grant covers it. Being able to do something is not permission to do it.</p>
+    <div id="grants"></div>
+  </article>
+
+  <article class="card actions" id="r3-task" style="--x:3260px;--y:540px;--w:300px">
+    <h3 id="t-title">Task T-14</h3>
+    <div class="task-state" id="t-state"></div>
+    <div id="t-actions"></div>
+  </article>
+
+  <article class="card" id="r3-ledger" style="--x:2520px;--y:1010px;--w:1040px">
+    <h3>Receipts</h3>
+    <p class="small muted">Every attempt leaves one, allowed or refused. Each receipt includes the hash of the one before it, so history cannot be quietly rewritten.</p>
+    <div class="ledger-wrap"><table class="ledger" id="ledger"></table></div>
+  </article>
+
+  <article class="card note" id="r3-note" style="--x:2900px;--y:800px;--w:320px">
+    <p class="small"><a href="https://github.com/bdf1992/Soveraeign">Soveraeign</a> is a local-first system where people and AI act on the same records, permissions and history. Authority comes from explicit grants, and every action leaves a receipt. I run my own work through a workstation built on these ideas, where agents take written contracts like the one above. It is experimental, and this card is a small reconstruction of it.</p>
+  </article>
+</div>
+</main>
+
+<script src="canvas.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
