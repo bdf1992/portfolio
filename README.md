@@ -2,7 +2,7 @@
 
 Brandon Freeman's portfolio, live at https://bdo.recd.stream.
 
-One pan-and-zoom canvas with three small demos, each running in the browser on invented data:
+One pan-and-zoom canvas with four small demos, each running in the browser on invented data:
 
 1. **Bounded agents**: an agent works a support request through a graph whose steps are run by a
    model, by exact logic or by a person, with a limit on every loop and every step written to the case.
@@ -12,6 +12,9 @@ One pan-and-zoom canvas with three small demos, each running in the browser on i
 3. **Grants and receipts**: a person writes an agent a contract, actions are allowed only under a live
    grant, and every attempt leaves a hash-chained receipt. Based on
    [Soveraeign](https://github.com/bdf1992/Soveraeign).
+4. **One design system**: the page is dressed by bdos-design. Pick one of its seven looks and the whole
+   canvas changes, with the measures each look passes and the compile call an agent would make.
+   `looks/*.css` and `looks/looks.js` are compiled from bdos-design (`bdos-design compile`, `bdos-design looks --json`).
 
 Plain HTML, CSS and JavaScript; no build step, no backend. To run it locally:
 

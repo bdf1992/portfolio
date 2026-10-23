@@ -4,7 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandon Freeman</title>
-<meta name="description" content="Three small demos of AI operating environments: bounded agents, one rule set across a UI, API and MCP server, and authority from explicit grants with a receipt for every action.">
+<meta name="description" content="Four small demos of AI operating environments: bounded agents, one rule set across a UI, API and MCP server, and authority from explicit grants with a receipt for every action.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" id="look-css" href="looks/night-glass.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,6 +19,7 @@
     <button data-go="r1">1 · Bounded agents</button>
     <button data-go="r2">2 · One rule set</button>
     <button data-go="r3">3 · Grants and receipts</button>
+    <button data-go="r4">4 · One design system</button>
   </div>
   <div class="pill zoom-only">
     <button id="zoom-out" aria-label="Zoom out">−</button>
@@ -31,11 +36,11 @@
   <svg class="wires" id="wires" width="1" height="1"></svg>
 
   <!-- ===================== intro ===================== -->
-  <article class="card intro" id="intro" style="--x:1490px;--y:0px;--w:620px">
+  <article class="card intro" id="intro" style="--x:2110px;--y:0px;--w:620px">
     <h1>Brandon Freeman</h1>
     <p class="muted">Product Manager at Print Reach · <a href="https://github.com/bdf1992">github.com/bdf1992</a> · <a href="mailto:bdf1992.fb@gmail.com">bdf1992.fb@gmail.com</a></p>
-    <p class="lede">I build environments where people and AI agents work on the same records under the same rules. These are three small demos of how I approach that.</p>
-    <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo.</p>
+    <p class="lede">I build environments where people and AI agents work on the same records under the same rules. These are four small demos of how I approach that.</p>
+    <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo. The page itself is styled by the design system in demo 4.</p>
   </article>
 
   <!-- ===================== region 1 ===================== -->
@@ -159,9 +164,40 @@
   <article class="card note" id="r3-note" style="--x:2900px;--y:800px;--w:320px">
     <p class="small"><a href="https://github.com/bdf1992/Soveraeign">Soveraeign</a> is a local-first system where people and AI act on the same records, permissions and history. Authority comes from explicit grants, and every action leaves a receipt. I run my own work through a workstation built on these ideas, where agents take written contracts like the one above. It is experimental, and this card is a small reconstruction of it.</p>
   </article>
+
+  <!-- ===================== region 4 ===================== -->
+  <section class="frame" id="r4" style="--x:3720px;--y:460px;--w:1120px;--h:920px">
+    <header><h2>4 · One design system</h2><span class="chip">bdos-design · private, in development</span></header>
+  </section>
+
+  <article class="card" id="r4-pick" style="--x:3760px;--y:540px;--w:540px">
+    <h3>Pick a look</h3>
+    <p class="small muted">This whole page is dressed by bdos-design. Each look is one word; picking one swaps every colour, typeface, rounding and glass value on the canvas.</p>
+    <div class="look-grid" id="look-grid"></div>
+    <p class="small" id="look-mood" style="margin-top:10px"></p>
+  </article>
+
+  <article class="card" id="r4-char" style="--x:4340px;--y:540px;--w:460px">
+    <h3>What the look sets</h3>
+    <table class="kv-table" id="look-char"></table>
+    <h3 style="margin-top:14px">The bars it is held to</h3>
+    <p class="small muted" id="look-score"></p>
+    <div id="look-measures"></div>
+  </article>
+
+  <article class="card" id="r4-api" style="--x:3760px;--y:910px;--w:540px">
+    <h3>The same call an agent makes <span class="badge model">agent</span></h3>
+    <p class="small muted">An agent asks the design system's API for a page in a look and gets it back drawn with these tokens. The excerpt below is real compiler output for the look you picked.</p>
+    <pre id="look-api"></pre>
+  </article>
+
+  <article class="card note" id="r4-note" style="--x:4340px;--y:1130px;--w:460px">
+    <p class="small">bdos-design keeps a design system as data: tokens with a grammar, contracts checked in CI, and a compiler that people and agents both call. A look is offered only while it passes every measure in both light and dark. The token files on this page were compiled from it; the code is private for now.</p>
+  </article>
 </div>
 </main>
 
+<script src="looks/looks.js"></script>
 <script src="canvas.js"></script>
 <script src="demos.js"></script>
 </body>

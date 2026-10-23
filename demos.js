@@ -434,3 +434,44 @@ function checkWire(doc, req) {
   $("c-write").onclick = act(ops.writeContract);
   reset();
 })();
+
+/* =====================================================================
+   Demo 4 · One design system, many looks
+   ===================================================================== */
+(function () {
+  const data = window.BD_LOOKS;
+  if (!data) return;
+  const link = $("look-css");
+  let current = "night-glass";
+  try { const saved = localStorage.getItem("look"); if (saved && data.looks[saved]) current = saved; } catch (e) {}
+
+  function pick(id) {
+    current = id;
+    link.href = `looks/${id}.css`;
+    try { localStorage.setItem("look", id); } catch (e) {}
+    render();
+    link.onload = () => redraw();
+  }
+
+  function render() {
+    const L = data.looks[current];
+    $("look-grid").innerHTML = data.order.map((id) => {
+      const l = data.looks[id];
+      return `<button class="look-btn" data-look="${id}" aria-pressed="${id === current}"><b>${esc(l.label)}</b>
+        <span class="small muted">${esc(l.brand)} accent</span>
+        <span class="sw"><i style="background:${l.character.Accent}"></i></span></button>`;
+    }).join("");
+    $("look-grid").querySelectorAll("button").forEach((b) => (b.onclick = () => pick(b.dataset.look)));
+    $("look-mood").textContent = L.mood;
+    $("look-char").innerHTML = Object.entries(L.character).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(String(v).split(",")[0].replace(/"/g, ""))}</td></tr>`).join("");
+    $("look-score").textContent = `${L.passed} of ${L.total} measures pass across light and dark. The first five, in dark:`;
+    $("look-measures").innerHTML = L.measures.map((m) => `<div class="measure"><span class="badge ${m.ok ? "ok" : "no"}">${m.ok ? "pass" : "fail"}</span>
+      <span>${esc(m.says)} <span class="muted mono">${m.value} (${m.kind} ${m.bound})</span></span></div>`).join("");
+    const req = { look: current, document: { catalog: "bdos-design@0.1.0", title: "Approve a reply", root: { type: "page", "...": "" } } };
+    $("look-api").textContent = `POST /v1/compile\n${JSON.stringify(req, null, 2)}\n\n← 200\n${JSON.stringify({ ok: true, look: current, brand: L.brand, css: `:root { --bd-color-accent: ${L.character.Accent}; --bd-radius-card: ${L.character["Card rounding"]}; … }`, html: "<!doctype html>…" }, null, 2)}`;
+    redraw();
+  }
+
+  link.href = `looks/${current}.css`;
+  render();
+})();
