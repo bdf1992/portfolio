@@ -131,6 +131,8 @@
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     viewport.setPointerCapture(e.pointerId);
     cancelAnimationFrame(anim);
+    e.preventDefault();
+    window.getSelection()?.removeAllRanges();
     if (pointers.size === 1) {
       pan = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y };
       viewport.classList.add("panning");
@@ -158,6 +160,12 @@
     if (pointers.size < 2) pinch = null;
     if (pointers.size === 0) { pan = null; viewport.classList.remove("panning"); }
   };
+  // Text selection never starts from a drag on the canvas, only inside fields and code blocks.
+  viewport.addEventListener("selectstart", (e) => {
+    if (document.body.classList.contains("reading")) return;
+    const el = e.target.nodeType === 1 ? e.target : e.target.parentElement;
+    if (!el || !el.closest("input, textarea, pre")) e.preventDefault();
+  });
   viewport.addEventListener("pointerup", up);
   viewport.addEventListener("pointercancel", up);
 

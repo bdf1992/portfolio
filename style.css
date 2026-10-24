@@ -67,6 +67,9 @@ button, select, input, textarea { font: inherit; color: inherit; }
   background-image: radial-gradient(var(--dot) 1.1px, transparent 1.2px);
 }
 .viewport.panning { cursor: grabbing; }
+.viewport .world { -webkit-user-select: none; user-select: none; }
+.viewport input, .viewport textarea, .viewport pre { -webkit-user-select: text; user-select: text; }
+body.reading .world { -webkit-user-select: text; user-select: text; }
 .world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .wires { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
 .wires path { fill: none; stroke: var(--frame-line); stroke-width: 1.6; }
