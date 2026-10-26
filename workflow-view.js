@@ -97,7 +97,7 @@
     const kind=byId('wf-component').value, next=engine.updateComponent(kind);
     notice(`${WorkflowModel.labels[kind]} v${next.version} is ready for new runs. Existing runs retain their pinned version.`);
   });
-  byId('wf-reset').onclick = () => { engine=WorkflowModel.createEngine(); selectedRun=null; selectedNode='intake'; fillForm(); notice('Example reset. No saved company data is involved.'); render(); };
+  byId('wf-reset').onclick = () => { engine=WorkflowModel.createEngine(); selectedRun=null; selectedNode='intake'; byId('wf-component').value='base'; fillForm(); notice('Example reset. No saved company data is involved.'); render(); };
   window.workflowDemo = { snapshot:()=>engine.snapshot(), start:()=>engine.startRun(), step:id=>engine.step(id), render };
   fillForm(); render();
 })();
