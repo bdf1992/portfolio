@@ -178,5 +178,48 @@
     return { snapshot: () => copy(state), versions, selectWorkspace, saveCustomization, setGrant,
       updateComponent, startRun, step, runToStop, review, trySend };
   }
-  return { createEngine, evaluateDraft, validateWorkflow, labels };
+  function authorIntake(requirements) {
+    if(!requirements||typeof requirements.supportQueue!=='string'||!requirements.supportQueue.trim()||requirements.supportQueue.length>40||typeof requirements.requireContact!=='boolean')throw new Error('Choose a support queue and contact requirement');
+    const outcome=(queue,priority,status)=>({queue,priority,status});
+    return {kind:'intake-triage',nodes:['receive','validate','route','record'],rules:[
+      {id:'missing-details',label:'Missing details → ask for information',test:{op:'missing',fields:['summary',...(requirements.requireContact?['contact']:[])]},outcome:outcome('Requestor','Unassigned','Needs information')},
+      {id:'service-stopped',label:`Service stopped → urgent ${requirements.supportQueue}`,test:{op:'equals',field:'impact',value:'stopped'},outcome:outcome(requirements.supportQueue,'Urgent','Routed')},
+      ...[['billing','Finance'],['support',requirements.supportQueue],['change','Product']].map(([category,queue])=>({id:category,label:`${category[0].toUpperCase()+category.slice(1)} → ${queue}`,test:{op:'equals',field:'category',value:category},outcome:outcome(queue,'Normal','Routed')}))
+    ],fallback:outcome('Human review','Unassigned','Needs review')};
+  }
+  function validateIntake(flow) {
+    const fields=['summary','contact','category','impact'];
+    const outcome=value=>value&&typeof value.queue==='string'&&value.queue.trim().length>0&&value.queue.length<=40
+      &&['Urgent','Normal','Unassigned'].includes(value.priority)&&['Routed','Needs information','Needs review'].includes(value.status);
+    return Boolean(flow&&flow.kind==='intake-triage'&&Array.isArray(flow.nodes)&&flow.nodes.join(',')==='receive,validate,route,record'
+      &&Array.isArray(flow.rules)&&flow.rules.length>0&&flow.rules.length<=8&&new Set(flow.rules.map(rule=>rule?.id)).size===flow.rules.length
+      &&flow.rules.every(rule=>rule&&typeof rule.id==='string'&&rule.id.length>0&&rule.id.length<=40&&typeof rule.label==='string'&&rule.label.length<=120&&outcome(rule.outcome)
+        &&(rule.test?.op==='missing'?Array.isArray(rule.test.fields)&&rule.test.fields.length>0&&rule.test.fields.every(field=>fields.includes(field))
+          :rule.test?.op==='equals'&&fields.includes(rule.test.field)&&typeof rule.test.value==='string'&&rule.test.value.length<=40))
+      &&outcome(flow.fallback)&&flow.fallback.status==='Needs review');
+  }
+  function executeIntake(flow,submissions) {
+    if(!validateIntake(flow))throw new Error('Invalid intake definition');
+    if(!Array.isArray(submissions)||!submissions.length||submissions.length>20)throw new Error('Run 1 to 20 intake submissions');
+    const items=submissions.map((item,index)=>{
+      if(!item||typeof item!=='object')throw new Error('Invalid submission');
+      const normalized={id:item.id??`Intake-${index+1}`};
+      for(const [field,limit] of Object.entries({id:40,summary:300,contact:100,category:40,impact:40})){
+        const value=field==='id'?normalized.id:(item[field]??'');
+        if(typeof value!=='string'||value.length>limit||(field==='id'&&!value.trim()))throw new Error('Invalid intake field');
+        normalized[field]=value.trim();
+      }
+      return normalized;
+    });
+    if(new Set(items.map(item=>item.id)).size!==items.length)throw new Error('Duplicate submission IDs');
+    return items.map(item=>{
+      const rule=flow.rules.find(rule=>rule.test.op==='missing'?rule.test.fields.some(field=>!item[field]):item[rule.test.field]===rule.test.value);
+      const result=copy(rule?rule.outcome:flow.fallback);
+      const reason=rule?rule.label:'No matching route → human review';
+      return {input:copy(item),...result,ruleId:rule?.id||'fallback',reason,
+        trace:[{node:'receive',result:item.id},{node:'validate',result:result.status==='Needs information'?'Missing required details':'Details accepted'},
+          {node:'route',result:reason},{node:'record',result:`${result.queue} · ${result.priority} · ${result.status}`}],externalActions:false};
+    });
+  }
+  return { createEngine, evaluateDraft, validateWorkflow, labels, authorIntake, validateIntake, executeIntake };
 });

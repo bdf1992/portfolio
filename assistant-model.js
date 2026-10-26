@@ -10,6 +10,7 @@
   const labels = { base:'Base workflow', agent:'Agent instructions', tool:'Policy tool', execution:'Execution rule', customization:'Local context', personalization:'Personalization' };
   const grantsFor = { 'workspace.read':['read'], 'automation.define':['write'], 'automation.run':['read','execute'], 'agents.define':['write'], 'workflow.define':['write'], 'checks.run':['read','write','execute'], 'worker.run':['read','write','execute'], 'evidence.read':['read'] };
   const workerTools = ['policy.read','draft.prepare'];
+  grantsFor['workflow.run']=['read','execute'];
   function routeRequest(text) {
     if (/\b(agent|assistant|engineer)\b/i.test(text)) return 'delegate';
     if (/\b(automate|daily|overdue|flag|every day)\b/i.test(text)) return 'automation';
@@ -42,6 +43,12 @@
     state.workspaces.print.case={id:'P-104',customer:'Harbor Street Bakery',quantity:500,ageDays:10,
       approved:{name:'Menu · approved v3',item:'Lunch special',price:'$12'},
       delivered:{name:'Menu · delivered v2',item:'Lunch special',price:'$10'}};
+    state.workspaces.intake=makeWorkspace('intake','Shared intake','Internal requests','Check required details, prioritize stopped services and route each request to its owner.','Set up triage for a new shared intake.',[]);
+    state.workspaces.intake.requirements={supportQueue:'Service desk',requireContact:true};
+    state.workspaces.intake.samples=[
+      {id:'IN-101',summary:'The team cannot sign in to our order system',contact:'Alex',category:'support',impact:'stopped'},
+      {id:'IN-102',summary:'Please explain this invoice charge',contact:'Sam',category:'billing',impact:'normal'},
+      {id:'IN-103',summary:'Can we add an export?',contact:'',category:'change',impact:'normal'}];
     function workspace(id=state.activeWorkspace) { if (!Object.hasOwn(state.workspaces,id)) throw new Error('Unknown workspace'); return state.workspaces[id]; }
     function findRun(id) { const run=state.runs.find(item=>item.id===id); if (!run) throw new Error('Unknown run'); return run; }
     function message(run,text) { workspace(run.workspaceId).messages.push({role:'assistant',text,runId:run.id}); }
@@ -74,14 +81,16 @@
       const w=workspace();
       if (options.parentId && findRun(options.parentId).workspaceId!==w.id) throw new Error('Evidence belongs to another workspace');
       const path=routeRequest(text);
+      const intake=w.id==='intake'&&path==='delegate';
       const plans={
         direct:[['Assistant','workspace.read','Inspect records'],['Assistant','answer','Answer directly']],
         automation:[['Assistant','workspace.read','Inspect records'],['Assistant','automation.define','Write a rule'],['Assistant','automation.run','Run the rule'],['Assistant','answer','Report the result']],
         delegate:[['Assistant','workspace.read','Inspect workspace'],['Assistant','agents.define','Prepare engineer'],['Engineering agent','workflow.define','Author workflow'],['Engineering agent','agents.define','Author worker'],['Engineering agent','checks.run','Check the result'],['Assistant','worker.run','Try the worker'],['Assistant','answer','Report back']],
         clarification:[]
       };
+      if(intake)plans.delegate=[['Assistant','workspace.read','Read intake requirements'],['Assistant','agents.define','Brief engineer'],['Engineering agent','workflow.define','Author triage'],['Engineering agent','checks.run','Validate workflow'],['Assistant','workflow.run','Run sample intake'],['Assistant','answer','Report results']];
       const run={id:`Request ${++state.sequence}`,workspaceId:w.id,workspaceName:w.name,request:text,path,
-        parentId:options.parentId||null,status:path==='clarification'?'clarification':'ready',position:0,actions:0,
+        kind:intake?'intake':'case',parentId:options.parentId||null,status:path==='clarification'?'clarification':'ready',position:0,actions:0,
         versions:versions(),pins:clone({components:state.components,workspace:w}),plan:plans[path],artifacts:{},trace:[],result:null};
       state.runs.push(run);w.messages.push({role:'person',text:options.displayText||text,runId:run.id});
       const explanations={direct:'I can answer that with the workspace tools. No specialist agent is needed.',automation:'A saved filter is enough for this. I will define and run an ordinary rule; it needs no additional agent.',delegate:'I will inspect the workspace, prepare an engineering agent, and have it author a workflow and worker agent. Their definitions and checks will stay inspectable.',clarification:'This is a scripted example. Try asking what is blocked, asking for a daily review list, or asking me to build a specialist agent.'};
@@ -135,16 +144,16 @@
       }
       if (tool==='agents.define'&&actor==='Assistant') {
         run.artifacts.engineer={id:`Engineer-${run.id.split(' ')[1]}`,role:'Engineering agent',createdBy:'Assistant',workspaceId:w.id,
-          instructions:`Author a business worker and workflow for: ${run.request} Local requirement: ${run.pins.workspace.focus}`,
+          instructions:`Author ${run.kind==='intake'?'an intake triage workflow':'a business worker and workflow'} for: ${run.request} Local requirement: ${run.pins.workspace.focus}`,
           allowedTools:['workspace.read','workflow.define','agents.define','checks.run'],conversationHistory:[],
-          context:{domain:run.pins.workspace.domain,goal:run.request,localInstruction:run.pins.workspace.focus},grantSource:`Live grants for ${w.id}; no independent permission to send or publish`};
+          context:{domain:run.pins.workspace.domain,goal:run.request,localInstruction:run.pins.workspace.focus,...(run.kind==='intake'?{requirements:clone(run.pins.workspace.requirements)}:{})},grantSource:`Live grants for ${w.id}; no independent permission to send or publish`};
         record(run,actor,tool,'authored',`${run.artifacts.engineer.id} receives an explicit brief, scoped tools and zero inherited conversation messages.`);
       }
       if (tool==='workflow.define') {
-        run.artifacts.workflow={id:`Workflow-${run.id.split(' ')[1]}`,createdBy:run.artifacts.engineer.id,baseVersion:run.versions.base,workspaceId:w.id,
+        run.artifacts.workflow={...(run.kind==='intake'?workers.authorIntake(run.artifacts.engineer.context.requirements):{}),id:`Workflow-${run.id.split(' ')[1]}`,createdBy:run.artifacts.engineer.id,baseVersion:run.versions.base,workspaceId:w.id,
           localInstruction:run.pins.workspace.focus,channel:w.id==='print'?'Email':'Customer portal',
-          nodes:['intake','policy','draft',...(run.pins.components.base.requiresCitation?['check']:[]),'review'],
-          surface:{kind:'case-review',panels:['source-files','reply'],actions:['approve-draft','send-back'],humanApproval:true}};
+          ...(run.kind==='intake'?{}:{nodes:['intake','policy','draft',...(run.pins.components.base.requiresCitation?['check']:[]),'review']}),
+          surface:run.kind==='intake'?{kind:'intake-triage',panels:['rules','results'],actions:['submit-intake']}:{kind:'case-review',panels:['source-files','reply'],actions:['approve-draft','send-back'],humanApproval:true}};
         record(run,actor,tool,'authored',`Created a workspace-specific workflow from base v${run.versions.base}.`);
       }
       if (tool==='agents.define'&&actor==='Engineering agent') {
@@ -157,7 +166,12 @@
           grantSource:`Live ${w.id} grants; preparation only, no sending`};
         record(run,actor,tool,'authored',`${run.artifacts.worker.id} is a new agent definition, linked to ${run.artifacts.workflow.id} and the engineer that authored it.`);
       }
-      if (tool==='checks.run') {
+      if (tool==='checks.run'&&run.kind==='intake') {
+        run.artifacts.checks={passed:workers.validateIntake(run.artifacts.workflow)};
+        record(run,actor,tool,run.artifacts.checks.passed?'passed':'failed','Validated the authored steps, ordered rules and human fallback before execution.');
+        if(!run.artifacts.checks.passed){run.status='needs_revision';return clone(run);}
+      }
+      if (tool==='checks.run'&&run.kind!=='intake') {
         const contained=validateWorker(run.artifacts.worker,w.id), sample=contained?makeWorker(run):null;
         const passed=contained&&sample.status==='review';
         run.artifacts.checks={passed,scopeContained:contained,sampleStatus:sample?.status||'refused',sampleTrace:sample?.trace||[],sampleOutput:sample?.output||null};
@@ -174,16 +188,22 @@
         run.result={type:'worker-draft',output:sample.output,workerId:run.artifacts.worker.id,createdBy:run.artifacts.worker.createdBy,additionalAgents:2,sent:false};
         record(run,run.artifacts.worker.id,tool,sample.status,'The fresh business worker executed the authored workflow using the pinned tools and its explicit context.');
       }
+      if(tool==='workflow.run') {
+        const rows=workers.executeIntake(run.artifacts.workflow,run.pins.workspace.samples);
+        run.executions=[{id:'Execution 1',rows}];
+        run.result={type:'intake-results',rows,additionalAgents:1,externalActions:false};
+        record(run,actor,tool,'executed',`Executed the saved triage definition on ${rows.length} sample submissions. No worker agent or external system was used.`);
+      }
       if (tool==='answer') {
         if (run.path==='direct') run.result={type:'answer',records:run.artifacts.records.filter(item=>item.status==='waiting'),additionalAgents:0};
         const opening=run.pins.workspace.preferences.tone==='warm'?'Here is what I found. ':'';
-        const answer=run.path==='direct'?`${opening}${run.result.records.length} items are waiting: ${run.result.records.map(item=>`${item.id} — ${item.reason.toLowerCase()}`).join('; ')}. I used the records directly and created no additional agent.`
+        const answer=run.kind==='intake'?`The engineering agent authored the intake triage workflow. I ran its saved rules on ${run.result.rows.length} sample requests. Ready to try another submission; no live queue was changed.`:run.path==='direct'?`${opening}${run.result.records.length} items are waiting: ${run.result.records.map(item=>`${item.id} — ${item.reason.toLowerCase()}`).join('; ')}. I used the records directly and created no additional agent.`
           :run.path==='automation'?`${opening}The ordinary rule produced a ${run.result.records.length}-item review list. Its definition is saved in this example. It has no worker agent and no live recurring schedule.`
           :`${opening}The engineering agent authored the workflow and business worker. Checks passed and the worker prepared a draft. The definitions, lineage and execution trace are ready to inspect; nothing was sent.`;
         message(run,answer);record(run,actor,tool,'reported',answer);
       }
       run.position++;
-      if (run.position===run.plan.length) run.status=run.path==='delegate'?'review':'complete';
+      if (run.position===run.plan.length) run.status=run.path==='delegate'&&run.kind!=='intake'?'review':'complete';
       return clone(run);
     }
     function runToStop(id) { let run;do {run=advance(id);} while(run.status==='running'||run.status==='ready');return run; }
@@ -208,7 +228,22 @@
       record(findRun(next.id),'Assistant','evidence.read','used',`Read the failed sample output in ${source.id}; revised agent instructions to require the policy source. The earlier artifacts are preserved.`);
       return clone(findRun(next.id));
     }
-    return {snapshot:()=>clone(state),versions,submit,advance,runToStop,setGrant,updateComponent,review,editDraft,reviseFromEvidence,
+    function saveIntakeRequirements(requirements) {
+      const w=workspace();if(w.id!=='intake')throw new Error('Choose the intake workspace');
+      workers.authorIntake(requirements);
+      if(JSON.stringify(w.requirements)!==JSON.stringify(requirements)){w.requirements=clone(requirements);w.contextVersion++;}
+    }
+    function runIntake(id,submissions) {
+      const run=findRun(id),w=workspace(run.workspaceId);
+      if(run.kind!=='intake'||run.status!=='complete')throw new Error('Author an intake workflow first');
+      if(!w.grants.read||!w.grants.execute)throw new Error('Live read and execute grants are required');
+      if(run.executions.length>=10)throw new Error('Build another workflow before running more submissions');
+      const rows=workers.executeIntake(run.artifacts.workflow,submissions);
+      const execution={id:`Execution ${run.executions.length+1}`,rows};run.executions.push(execution);
+      record(run,'Assistant','workflow.run','executed',`${execution.id}: ${rows.length} submission(s), using ${run.artifacts.workflow.id}. Nothing was sent to a live queue.`);
+      return clone(execution);
+    }
+    return {snapshot:()=>clone(state),versions,submit,advance,runToStop,setGrant,updateComponent,review,editDraft,reviseFromEvidence,saveIntakeRequirements,runIntake,
       selectWorkspace:id=>{workspace(id);state.activeWorkspace=id;}};
   }
   return {createEngine,routeRequest,validateWorker,labels};

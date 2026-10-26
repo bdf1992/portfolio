@@ -1,58 +1,57 @@
 (function () {
   'use strict';
-  if (!document.getElementById('workflow-workspace')) return;
+  if(!document.getElementById('workflow-workspace'))return;
   const el=id=>document.getElementById(id);
   const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let engine,selected,artifact='workflow';
-  function current(){return engine.snapshot().runs.find(run=>run.id===selected);}
-  function reset(){
-    engine=AssistantModel.createEngine();
-    for(const kind of ['read','write','execute'])engine.setGrant(kind,true);
-    selected=engine.submit('Build a review tool and a worker agent for customer reprint requests.').id;
-    engine.runToStop(selected);artifact='workflow';
-    el('rt-inspector').open=false;el('rt-other-result').textContent='';render();
-  }
+  const engine=AssistantModel.createEngine();engine.selectWorkspace('intake');
+  for(const kind of ['read','write','execute'])engine.setGrant(kind,true);
+  let selected=null,artifact='workflow',shown=null,rowIndex=0,customCount=0,stale=false;
+  const current=()=>engine.snapshot().runs.find(run=>run.id===selected);
   function inspect(){
     const run=current();
-    el('rt-artifact-tabs').innerHTML=[['workflow','Screen + workflow'],['engineer','Engineering agent'],['worker','Business worker']].map(([key,label])=>`<button class="btn small" data-artifact="${key}" aria-pressed="${key===artifact}">${label}</button>`).join('');
-    el('rt-artifact-tabs').querySelectorAll('button').forEach(button=>button.onclick=()=>{artifact=button.dataset.artifact;inspect();});
-    el('rt-definition').textContent=JSON.stringify(run.artifacts[artifact],null,2);
-    el('rt-trace').innerHTML=run.trace.map(item=>`<li><strong>${esc(item.actor)}</strong> · ${esc(item.tool)} · ${esc(item.result)}</li>`).join('');
+    el('ti-definition').textContent=run?JSON.stringify(run.artifacts[artifact],null,2):'Build the workflow to inspect its definition.';
+    el('ti-trace').innerHTML=run?run.trace.map(item=>`<li>${esc(item.actor)} · ${esc(item.tool)} · ${esc(item.result)}</li>`).join(''):'';
   }
   function render(){
-    const run=current(),sample=run.pins.workspace.case,surface=run.artifacts.workflow.surface;
-    const awaiting=run.status==='review';
-    el('rt-case-title').textContent=`${sample.customer} · ${sample.id}`;
-    el('rt-case-detail').textContent=`${sample.quantity} menus · delivered ${sample.ageDays} days ago · customer reports the wrong price`;
-    el('rt-status').textContent=awaiting?'Needs your review':run.status==='accepted'?'Draft approved':'Sent back';
-    const panels={
-      'source-files':()=>`<div class="rt-files" aria-label="Sample proof comparison">${['approved','delivered'].map(key=>{const file=sample[key];return `<section class="rt-file"><h4>${esc(file.name)}</h4><div class="rt-proof"><strong>Harbor Street<br>Bakery</strong><p>${esc(file.item)} <b>${esc(file.price)}</b></p></div></section>`;}).join('')}</div>`,
-      reply:()=>`<div class="rt-reply"><label for="rt-draft">Reply to the customer</label><textarea id="rt-draft" maxlength="1000" rows="3" ${awaiting?'':'readonly'}>${esc(run.result.output.text)}</textarea><p class="rt-policy">Sample policy: ${run.artifacts.execution.policy.windowDays}-day window. This request needs a person’s decision.</p></div>`
-    };
-    el('rt-panels').innerHTML=surface.panels.map(key=>panels[key]()).join('');
-    const actions={'approve-draft':['Approve draft','primary',true],'send-back':['Send back','',false]};
-    el('rt-actions').innerHTML=surface.actions.map(key=>{const [label,style]=actions[key];return `<button class="btn ${style}" data-action="${key}" ${awaiting&&surface.humanApproval?'':'disabled'}>${label}</button>`;}).join('');
-    el('rt-actions').querySelectorAll('button').forEach(button=>button.onclick=()=>{
-      const text=el('rt-draft').value;
-      try{
-        if(text!==current().result.output.text&&(text.trim()||actions[button.dataset.action][2]))engine.editDraft(selected,text);
-        engine.review(selected,actions[button.dataset.action][2]);render();
-      }catch(error){el('rt-notice').textContent=error.message;}
-    });
-    el('rt-notice').textContent=awaiting?'Edit the draft before approving. This example sends no messages.':run.status==='accepted'?'Draft approved in this example. Nothing was sent.':'Draft returned for revision. Nothing was sent.';
+    const run=current();el('ti-built').hidden=!run;
+    if(run){
+      const flow=run.artifacts.workflow;
+      el('ti-title').textContent=`Intake triage · version ${flow.id.split('-').at(-1)}`;
+      const panels={
+        rules:()=>`<section><h4>Authored routing · first matching rule wins</h4><ol class="ti-rules">${flow.rules.map(rule=>`<li>${esc(rule.label)}</li>`).join('')}<li>Anything else → ${esc(flow.fallback.queue)}</li></ol></section>`,
+        results:()=>`<section><h4>${shown.rows.length} intake ${shown.rows.length===1?'executed':'submissions executed'} · ${esc(shown.id)}</h4><div class="ti-results">${shown.rows.map((row,index)=>`<button class="ti-result" data-result="${index}" aria-pressed="${index===rowIndex}"><strong>${esc(row.input.summary||'No request details')}</strong><small class="${row.priority==='Urgent'?'urgent':''}">${esc(row.input.id)} · ${esc(row.queue)} · ${esc(row.priority==='Unassigned'?row.status:row.priority)}</small></button>`).join('')}</div><p id="ti-reason" aria-live="polite"></p></section>`
+      };
+      el('ti-panels').innerHTML=flow.surface.panels.map(key=>panels[key]()).join('');
+      el('ti-panels').querySelectorAll('[data-result]').forEach(button=>button.onclick=()=>{rowIndex=Number(button.dataset.result);render();});
+      const row=shown.rows[rowIndex];el('ti-reason').textContent=`Why: ${row.reason}.`;
+      el('ti-submit').disabled=stale;
+    }
     inspect();window.canvasRedraw?.();
   }
-  function other(text){
+  el('ti-build').onclick=()=>{
     try{
-      const result=engine.runToStop(engine.submit(text).id),records=result.result.records;
-      el('rt-other-result').textContent=`${result.path==='direct'?'Read directly from the workspace':'Ordinary rule: waiting more than five days'}: ${records.map(item=>`${item.id} — ${item.reason}`).join('; ')}. No additional agent.`;
-    }catch(error){el('rt-other-result').textContent=error.message;}
-    window.canvasRedraw?.();
+      engine.saveIntakeRequirements({supportQueue:el('ti-team').value,requireContact:el('ti-contact').checked});
+      const run=engine.runToStop(engine.submit('Build a triage workflow for our new shared intake.').id);
+      if(run.status!=='complete')throw new Error('The workflow did not reach execution.');
+      selected=run.id;shown=run.executions[0];rowIndex=0;stale=false;
+      el('ti-status').textContent='The engineering agent authored the workflow. The assistant ran its rules on three new requests.';
+      el('ti-build').textContent='Build a new version';el('ti-execution').textContent='Select a result to see why it took that route.';render();
+    }catch(error){el('ti-status').textContent=error.message;}
+  };
+  function requirementsChanged(){
+    stale=Boolean(selected);el('ti-status').textContent=selected?'Requirements changed. Build a new version to apply them.':'Ready to build with these requirements.';render();
   }
-  el('rt-reset').onclick=reset;
-  el('rt-direct').onclick=()=>other('What is waiting?');
-  el('rt-rule').onclick=()=>other('Flag work waiting over five days.');
-  el('rt-inspector').addEventListener('toggle',()=>window.canvasRedraw?.());
-  el('rt-inspector').querySelectorAll('details').forEach(details=>details.addEventListener('toggle',()=>window.canvasRedraw?.()));
-  window.workflowDemo={snapshot:()=>engine.snapshot(),render};reset();
+  el('ti-team').onchange=requirementsChanged;el('ti-contact').onchange=requirementsChanged;
+  el('ti-form').onsubmit=event=>{
+    event.preventDefault();
+    try{
+      if(stale)throw new Error('Build the changed requirements first.');
+      shown=engine.runIntake(selected,[{id:`Try-${++customCount}`,summary:el('ti-summary').value,contact:el('ti-person').value,category:el('ti-category').value,impact:el('ti-stopped').checked?'stopped':'normal'}]);rowIndex=0;
+      el('ti-execution').textContent=`Executed against ${current().artifacts.workflow.id}. No live ticket was created.`;render();
+    }catch(error){el('ti-execution').textContent=error.message;}
+  };
+  document.querySelectorAll('[data-artifact]').forEach(button=>button.onclick=()=>{artifact=button.dataset.artifact;inspect();});
+  el('ti-inspector').addEventListener('toggle',()=>window.canvasRedraw?.());
+  document.querySelector('.ti-custom').addEventListener('toggle',()=>window.canvasRedraw?.());
+  window.workflowDemo={snapshot:()=>engine.snapshot(),render};render();
 })();

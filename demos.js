@@ -7,16 +7,16 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
    Demo 1 · Bounded agents
    ===================================================================== */
 (function () {
-  const W = 130, H = 46;
+  const W = 150, H = 50;
   const nodes = {
     intake:   { x: 15,  y: 20,  label: "Read the request", kind: "exact" },
-    classify: { x: 205, y: 20,  label: "Decide what it is", kind: "model" },
-    draft:    { x: 395, y: 20,  label: "Draft a reply", kind: "model" },
-    gather:   { x: 205, y: 150, label: "Look things up", kind: "exact" },
-    confirm:  { x: 395, y: 150, label: "Person confirms", kind: "person" },
-    handoff:  { x: 15,  y: 150, label: "Person takes over", kind: "person" },
-    act:      { x: 395, y: 280, label: "Do it", kind: "exact" },
-    close:    { x: 205, y: 280, label: "Close the case", kind: "exact" },
+    classify: { x: 245, y: 20,  label: "Decide what it is", kind: "model" },
+    draft:    { x: 475, y: 20,  label: "Draft a reply", kind: "model" },
+    gather:   { x: 245, y: 180, label: "Look things up", kind: "exact" },
+    confirm:  { x: 475, y: 180, label: "Person confirms", kind: "person" },
+    handoff:  { x: 15,  y: 180, label: "Person takes over", kind: "person" },
+    act:      { x: 475, y: 340, label: "Do it", kind: "exact" },
+    close:    { x: 245, y: 340, label: "Close the case", kind: "exact" },
   };
   const LIMIT = { gather: 3, revise: 2 };
 
@@ -161,16 +161,16 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
 
   function renderGraph() {
     const kindName = { model: "model", exact: "exact logic", person: "person" };
-    let s = `<svg viewBox="0 0 600 345" role="img" aria-label="Agent graph">
+    let s = `<svg viewBox="0 0 720 410" role="img" aria-label="Agent graph">
       <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>`;
     s += edge("intake", "classify");
     s += edge("classify", "draft", { label: "clear" });
-    s += edge("classify", "gather", { off: -22, label: "missing info", lx: 248, ly: 112, anchor: "end" });
-    s += edge("gather", "classify", { off: 22, loop: true, label: `max ${LIMIT.gather} loops`, lx: 293, ly: 112, anchor: "start" });
-    s += edge("gather", "handoff", { label: "limit reached" });
+    s += edge("classify", "gather", { off: -22, label: "missing info", lx: 286, ly: 130, anchor: "end" });
+    s += edge("gather", "classify", { off: 22, loop: true, label: `max ${LIMIT.gather} loops`, lx: 354, ly: 130, anchor: "start" });
+    s += edge("gather", "handoff", { label: "limit reached", ly: 193 });
     s += edge("draft", "confirm", { off: -22 });
-    s += edge("confirm", "draft", { off: 22, loop: true, label: `sent back, max ${LIMIT.revise}`, lx: 487, ly: 112, anchor: "start" });
-    s += edge("confirm", "act", { label: "approved", lx: 470, ly: 240, anchor: "start" });
+    s += edge("confirm", "draft", { off: 22, loop: true, label: `sent back, max ${LIMIT.revise}`, lx: 584, ly: 130, anchor: "start" });
+    s += edge("confirm", "act", { label: "approved", lx: 562, ly: 290, anchor: "start" });
     s += edge("act", "close");
     for (const [id, n] of Object.entries(nodes)) {
       const cls = ["node", n.kind === "person" ? "person" : "", S.node === id && !S.done ? "current" : "", S.visited.has(id) ? "visited" : ""].join(" ");

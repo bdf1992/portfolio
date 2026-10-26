@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandon Freeman</title>
-<meta name="description" content="Brandon Freeman builds agent systems and software delivery tools. Customize a workflow, start a fresh agent under grants, and compare versioned runs across business workspaces.">
+<meta name="description" content="Brandon Freeman builds agent systems and software delivery tools. Author and execute an intake workflow, explore bounded agents, and try shared tools.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 <link rel="stylesheet" id="look-css" href="looks/night-glass.css">
-<link rel="stylesheet" href="style.css?v=9215acc923a5">
+<link rel="stylesheet" href="style.css?v=4d7fabc95e96">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
     <button data-go="all">Overview</button>
     <button data-go="r1">1 · Bounded agents</button>
     <button data-go="r2">2 · One rule set</button>
-    <button data-go="r3">3 · A working tool</button>
+    <button data-go="r3">3 · Intake workflow</button>
     <button data-go="r4">4 · One design system</button>
   </div>
   <div class="pill zoom-only">
@@ -40,7 +40,7 @@
     <h1>Brandon Freeman</h1>
     <p class="muted">Product Owner and Manager at Print Reach · <a href="https://github.com/bdf1992">github.com/bdf1992</a> · <a href="mailto:bdf1992.fb@gmail.com">bdf1992.fb@gmail.com</a></p>
     <p class="lede">I design and build systems where people and AI agents work on the same records under the same rules. These four interactive examples show how I approach that.</p>
-    <p><a class="intro-link" href="#r3">Try a tool built from a business request →</a></p>
+    <p><a class="intro-link" href="#r3">Build and try an intake workflow →</a></p>
     <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo. The page itself is styled by the design system in demo 4.</p>
   </article>
 
@@ -126,14 +126,20 @@
   </article>
 
   <!-- ===================== region 3 ===================== -->
-  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:1120px"><header><h2>3 · From a request to a working tool</h2><span class="chip">Try a small example</span></header></section>
+  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:1100px"><header><h2>3 · Author a workflow. Run the intake.</h2><span class="chip">Assistant → engineer → workflow</span></header></section>
   <article class="card wf-workspace" id="r3-workspace" style="--x:2520px;--y:540px;--w:1040px"><div id="workflow-workspace">
-    <div class="rt-conversation"><p><span>You</span>We keep handling reprint requests in email. Build a simple review tool for the team.</p><p><span>Assistant</span>I’ve put together a review screen and a draft. Compare the versions, edit the reply, and approve it when ready.</p></div>
-    <div class="rt-tool"><div class="rt-heading"><div><span class="rt-eyebrow">Customer care / Reprint review</span><h3 id="rt-case-title"></h3></div><span class="rt-status" id="rt-status"></span></div><p class="small muted" id="rt-case-detail"></p><div id="rt-panels"></div><div class="row rt-actions" id="rt-actions"></div><p id="rt-notice" role="status" aria-live="polite" class="small"></p></div>
-    <div class="rt-footer"><p>Interactive prototype · sample data · scripted agents · nothing sent</p><button class="btn small" id="rt-reset">Start over</button></div>
-    <details id="rt-inspector"><summary>How this was built</summary><p class="small">The assistant briefs an engineering agent. That agent defines the review screen, workflow and a fresh worker. The worker gets the case and tools it needs, without the earlier conversation.</p><div class="row rt-tabs" id="rt-artifact-tabs"></div><pre id="rt-definition" aria-label="Authored definition"></pre><details><summary>Execution trace</summary><ol id="rt-trace"></ol></details><details><summary>Does every request need another agent?</summary><p class="small">No. The assistant can read the records itself or create an ordinary rule.</p><div class="row"><button class="btn small" id="rt-direct">What’s waiting?</button><button class="btn small" id="rt-rule">Flag work over five days old</button></div><p id="rt-other-result" class="small" role="status"></p></details></details>
+    <p class="ti-request"><span>You</span>We’re launching a shared intake. Catch missing details, prioritize outages and route requests to the right team.</p>
+    <div class="ti-brief"><label>Technical requests go to<select id="ti-team"><option>Service desk</option><option>Operations</option></select></label><label class="toggle"><input type="checkbox" id="ti-contact" checked> Require a contact</label><button class="btn primary" id="ti-build">Build and try the workflow</button></div>
+    <p class="ti-status" id="ti-status" role="status" aria-live="polite">The assistant will brief an engineering agent, then run the workflow it authors.</p>
+    <section id="ti-built" hidden><div class="ti-heading"><h3 id="ti-title"></h3><span class="small muted">Authored by engineering agent · executed with rules</span></div>
+      <div id="ti-panels" class="ti-columns"></div>
+      <details class="ti-custom"><summary>Try your own intake</summary><form id="ti-form"><label>Request<input id="ti-summary" maxlength="300" placeholder="What needs to happen?"></label><div class="ti-form-row"><label>Type<select id="ti-category"><option value="support">Technical support</option><option value="billing">Billing</option><option value="change">Product change</option><option value="other">Something else</option></select></label><label>Contact<input id="ti-person" maxlength="100" placeholder="Optional for this test"></label></div><div class="row"><label class="toggle"><input type="checkbox" id="ti-stopped"> Service has stopped</label><button type="submit" class="btn" id="ti-submit">Run this intake</button></div></form></details>
+      <p class="small" id="ti-execution" role="status"></p>
+    </section>
+    <details id="ti-inspector"><summary>Inspect the authored workflow</summary><p class="small">The assistant passes the requirements to an engineering agent. It authors a workflow from the intake steps. The saved rules execute without another agent. Authoring is scripted in this prototype.</p><div class="row"><button class="btn small" data-artifact="workflow">Workflow</button><button class="btn small" data-artifact="engineer">Engineering brief</button></div><pre id="ti-definition"></pre><ol id="ti-trace"></ol></details>
+    <p class="ti-disclosure">Interactive prototype · invented requests · scripted agents · no live tickets created</p>
   </div></article>
-  <article class="card note" id="r3-note" style="--x:2520px;--y:1560px;--w:1040px"><p class="small">This is the kind of system I want to help build with PICasso: turn a business need into a useful tool, with shared foundations, local requirements and a person in control of the result.</p></article>
+  <article class="card note" id="r3-note" style="--x:2520px;--y:1540px;--w:1040px"><p class="small">This is what I want to help build with PICasso: an assistant that turns a team’s requirements into workflows people can use, test and adapt.</p></article>
 
   <!-- ===================== region 4 ===================== -->
   <section class="frame" id="r4" style="--x:3720px;--y:460px;--w:1120px;--h:920px">
@@ -168,10 +174,10 @@
 </main>
 
 <script src="looks/looks.js"></script>
-<script src="canvas.js?v=a82c7f1716a2"></script>
-<script src="demos.js?v=8e279f395ee3"></script>
-<script src="workflow-model.js?v=23783f1b0642"></script>
-<script src="assistant-model.js?v=3e676b21daff"></script>
-<script src="workflow-view.js?v=2dc40427e9a5"></script>
+<script src="canvas.js?v=e83f8538b519"></script>
+<script src="demos.js?v=fb2971c90f22"></script>
+<script src="workflow-model.js?v=1af5d1fe4a52"></script>
+<script src="assistant-model.js?v=21d30047a334"></script>
+<script src="workflow-view.js?v=b02463e35ae6"></script>
 </body>
 </html>

@@ -9,12 +9,12 @@ One pan-and-zoom canvas with four small demos, each running in the browser on in
 2. **One rule set**: one function decides whether a wire may cross a boundary, and the editor, an
    HTTP API and an MCP tool call all ask it, so a person and an agent get the same answer.
    Based on [Schematically](https://github.com/bdf1992/schematically).
-3. **A working review tool**: one short request leads to a usable reprint-review screen. Compare
-   invented proof versions, edit the worker’s draft and approve or send it back. The authored screen
-   definition drives its panels and actions. Original worker output survives human edits. Optional
-   inspection shows the assistant → engineer → worker definitions and local execution trace,
-   plus direct tool help and ordinary automation. Agents are scripted; no live AI or external
-   actions are connected. Read/write/execute grants are preset for this isolated sample.
+3. **Intake workflow**: an assistant briefs an engineering agent with a team’s requirements.
+   The engineer authors a reusable triage definition. Its ordered rules check required information,
+   prioritize outages and route requests to teams or human review. Build and execute it on invented
+   requests, submit a custom request, or change requirements and author a new version. The interpreter
+   runs the actual saved rules; a business worker agent is unnecessary for this deterministic flow.
+   Authoring is scripted with no live AI, tickets or external systems. Definitions and trace are optional.
 4. **One design system**: the page is dressed by bdos-design. Pick one of its seven looks and the whole
    canvas changes, with the measures each look passes and the compile call an agent would make.
    `looks/*.css` and `looks/looks.js` are compiled from bdos-design (`bdos-design compile`, `bdos-design looks --json`).
