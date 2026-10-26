@@ -98,7 +98,7 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
     C=cases.find(item=>item.id===(run?.caseId||$("case-pick").value))||cases[0];
     S={node:run?.node||'intake',visited:new Set(run?.visited||[]),loops:run?.loops||{gather:0,revise:0},log:run?.log||[],done:!!run&&['complete','handoff','budget_exhausted'].includes(run.status),waiting:run?.status==='review'};
     LIMIT=(run?.path||view.path).limits;
-    $("r1-path-source").textContent=view.path.version?`Agent-authored path v${view.path.version} · monitored in #3`:'Base example · author a monitored version in #3';
+    $("r1-path-source").textContent=view.path.version?`Agent-authored path v${view.path.version} · monitored in #2`:'Base example · author a monitored version in #2';
     if(run)$("case-pick").value=run.caseId;
     renderGraph();
     $("case-body").innerHTML = `<div class="muted">Message</div><div>${esc(C.message)}</div>`;
@@ -139,7 +139,7 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
 })();
 
 /* =====================================================================
-   Demo 2 · One rule set, three surfaces
+   Demo 3 · Data, security, traces and signals
    ===================================================================== */
 
 // The one rule. Every surface below calls this and only this.
@@ -186,11 +186,18 @@ function checkWire(doc, req) {
     },
   };
 
+  const checks=[];let checksSeen=0,allowedChecks=0;
   function ask() {
     const req = { from: $("w-from").value, to: $("w-to").value, access: $("w-access").value };
     const answers = [surfaces.ui(req), surfaces.http(req), surfaces.mcp(req)];
     const same = answers.every((a) => a.code === answers[0].code);
     $("w-same").innerHTML = `<div class="same ${answers[0].ok ? "ok" : "no"}">${same ? `All three answered <b>${answers[0].code}</b>.` : "The surfaces disagree."} ${{ NO_PORT: "Try putting a port on the boundary.", PORT_READ_ONLY: "Try letting the port allow writes.", SAME_PART: "Pick two different parts." }[answers[0].code] || ""}</div>`;
+    const allowed=same&&answers.every(answer=>answer.ok);
+    checksSeen++;if(allowed)allowedChecks++;
+    checks.push({id:checksSeen,from:req.from,to:req.to,access:req.access,port:doc.boundaryPort?.access||'none',codes:answers.map(answer=>answer.code)});
+    if(checks.length>4)checks.shift();
+    $("w-signal").textContent=`Signal: ${allowedChecks} allowed · ${checksSeen-allowedChecks} refused · ${checksSeen} checked request${checksSeen===1?'':'s'}. Each was checked through all three interfaces.`;
+    $("w-trace").innerHTML=checks.slice().reverse().map(check=>`<li><strong>Check ${check.id}</strong> · ${esc(check.from)} → ${esc(check.to)} · ${esc(check.access)} · port: ${esc(check.port)}<br><span>UI ${esc(check.codes[0])} · HTTP ${esc(check.codes[1])} · MCP ${esc(check.codes[2])}</span></li>`).join('');
     redraw();
   }
 
@@ -237,7 +244,7 @@ function checkWire(doc, req) {
 })();
 
 /* =====================================================================
-   Demo 4 · One design system, many looks
+   Demo 4 · Generative UI through one design system
    ===================================================================== */
 (function () {
   const data = window.BD_LOOKS;

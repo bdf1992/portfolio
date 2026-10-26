@@ -9,17 +9,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 <link rel="stylesheet" id="look-css" href="looks/night-glass.css">
-<link rel="stylesheet" href="style.css?v=c84219b18cf0">
+<link rel="stylesheet" href="style.css?v=8e9972d6adcb">
 </head>
 <body>
 
 <nav class="bar" aria-label="Canvas">
   <div class="pill" id="jump">
     <button data-go="all">Overview</button>
-    <button data-go="r1">1 · Bounded agents</button>
-    <button data-go="r2">2 · One rule set</button>
-    <button data-go="r3">3 · Author and monitor</button>
-    <button data-go="r4">4 · One design system</button>
+    <button data-go="r1">1 · Workflow</button>
+    <button data-go="r2">2 · Workflow generation</button>
+    <button data-go="r3">3 · Data &amp; security</button>
+    <button data-go="r4">4 · Generative UI</button>
   </div>
   <div class="pill zoom-only">
     <button id="zoom-out" aria-label="Zoom out">−</button>
@@ -39,14 +39,14 @@
   <article class="card intro" id="intro" style="--x:2110px;--y:0px;--w:620px">
     <h1>Brandon Freeman</h1>
     <p class="muted">Product Owner and Manager at Print Reach · <a href="https://github.com/bdf1992">github.com/bdf1992</a> · <a href="mailto:bdf1992.fb@gmail.com">bdf1992.fb@gmail.com</a></p>
-    <p class="lede">I design and build systems where people and AI agents work on the same records under the same rules. These four interactive examples show how I approach that.</p>
-    <p><a class="intro-link" href="#r3">See the agent that authors and monitors #1 →</a></p>
-    <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo. The page itself is styled by the design system in demo 4.</p>
+    <p class="lede">I design and build systems where people and AI agents work on the same records under the same rules. Follow four examples: a workflow, how an agent builds it, the data and security behind it, and the UI people use.</p>
+    <p><a class="intro-link" href="#r1">Start with the example workflow →</a></p>
+    <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo. The final example shows the design system and compiler contract behind agent-generated UI.</p>
   </article>
 
   <!-- ===================== region 1 ===================== -->
   <section class="frame" id="r1" style="--x:0px;--y:460px;--w:1120px;--h:920px">
-    <header><h2>1 · Bounded agents</h2><span class="chip">Based on the AI product I own at work</span></header>
+    <header><h2>1 · Example workflow</h2><span class="chip">Based on the AI product I own at work</span></header>
   </section>
 
   <article class="card graph" id="r1-graph" style="--x:40px;--y:540px;--w:580px">
@@ -76,58 +76,12 @@
   <article class="card note" id="r1-note" style="--x:40px;--y:1050px;--w:580px">
     <h3>What is real here</h3>
     <p class="small">At Print Reach I am the product owner and manager for an internal AI system across four products, working with engineering and colleagues. Its design uses a graph with bounded loops, context chosen for each step, human review and recorded actions and results. My hands-on agent work there primarily turns project requirements into functional mocks and prototypes.</p>
-    <p class="small muted">This page shows none of the real system. The graph, the requests and the replies are invented.</p>
+    <p class="small muted">This page shows none of the real system. The graph, the requests and the replies are invented.</p><p class="small"><a href="#r2">Next: how an agent builds this workflow →</a></p>
   </article>
 
   <!-- ===================== region 2 ===================== -->
-  <section class="frame" id="r2" style="--x:1240px;--y:460px;--w:1120px;--h:920px">
-    <header><h2>2 · One rule set</h2><span class="chip">Schematically · open source, in beta</span></header>
-  </section>
-
-  <article class="card" id="r2-ask" style="--x:1280px;--y:540px;--w:420px">
-    <h3>Ask for a connection</h3>
-    <p class="small muted">The same request goes to all three surfaces. Change it and ask again, or click two boxes in the diagram.</p>
-    <div class="stack">
-      <div class="row">
-        <label class="field">From <select id="w-from"></select></label>
-        <label class="field">To <select id="w-to"></select></label>
-        <label class="field">Access <select id="w-access"><option value="read">read</option><option value="write">write</option></select></label>
-      </div>
-      <label class="toggle small"><input type="checkbox" id="w-port"> Put a port on the private network's boundary</label>
-      <label class="field">That port allows
-        <select id="w-port-access" disabled><option value="read">read only</option><option value="readwrite">read and write</option></select>
-      </label>
-      <button class="btn primary" id="w-ask">Ask all three</button>
-      <div id="w-same"></div>
-    </div>
-  </article>
-
-  <article class="card" id="r2-rule" style="--x:1740px;--y:540px;--w:580px">
-    <h3>The rule, written once</h3>
-    <p class="small muted">The UI, the HTTP API and the MCP server all call this one function. None of them has its own copy of the rule.</p>
-    <pre id="rule-src" style="max-height:210px"></pre>
-    <p class="small" style="margin-top:10px">In <a href="https://github.com/bdf1992/schematically">Schematically</a> a diagram is a model, not a drawing: boxes, boundaries, ports and wires with rules about what may connect. People edit it in the browser and agents edit it over HTTP or MCP, and every surface enforces the same rules, so a person and an agent get the same answer. This card is a small reconstruction of that idea, not the editor itself.</p>
-  </article>
-
-  <article class="card schem" id="r2-ui" style="--x:1280px;--y:1000px;--w:340px">
-    <h3>In the editor <span class="badge exact">person</span></h3>
-    <div id="schem"></div>
-    <div class="verdict" id="v-ui"></div>
-  </article>
-
-  <article class="card" id="r2-api" style="--x:1640px;--y:1000px;--w:340px">
-    <h3>Over HTTP <span class="badge exact">program</span></h3>
-    <pre id="v-api">—</pre>
-  </article>
-
-  <article class="card" id="r2-mcp" style="--x:2000px;--y:1000px;--w:340px">
-    <h3>Through MCP <span class="badge model">agent</span></h3>
-    <pre id="v-mcp">—</pre>
-  </article>
-
-  <!-- ===================== region 3 ===================== -->
-  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:1650px"><header><h2>3 · How an agent builds and monitors #1</h2><span class="chip">A request and a flow at each level</span></header></section>
-  <article class="card wf-workspace" id="r3-workspace" style="--x:2520px;--y:540px;--w:1040px"><div id="workflow-workspace">
+  <section class="frame" id="r2" style="--x:1240px;--y:460px;--w:1120px;--h:1650px"><header><h2>2 · Example workflow generation</h2><span class="chip">A request and a flow at each level</span></header></section>
+  <article class="card wf-workspace" id="r2-workspace" style="--x:1280px;--y:540px;--w:1040px"><div id="workflow-workspace">
     <div class="ba-title"><div><span class="ba-eyebrow">The outer flow</span><h3>Build a bounded support agent</h3></div><button class="btn small" id="ba-reset">Start over</button></div>
     <div class="ba-pair ba-parent-pair"><section class="ba-graph-panel"><h4>The authoring agent’s path</h4><div class="graph ba-diagram" id="ba-parent-graph"></div><p class="ba-readout" id="ba-parent-detail" role="status">Select a step to see its tools.</p></section>
       <section class="ba-intake"><span class="ba-eyebrow">Intake · build request</span><p id="ba-request"></p><button class="btn primary" id="ba-author">Build this flow</button><p class="ba-readout" id="ba-status" role="status" aria-live="polite"></p></section></div>
@@ -139,16 +93,62 @@
     <details id="ba-inspector"><summary>Inspect tools, limits and earlier runs</summary><div id="ba-budget"></div><label for="ba-definition-pick">Saved path</label><select id="ba-definition-pick"></select><pre id="ba-definition"></pre><ol id="ba-trace"></ol><div id="ba-history"></div></details>
     <p class="ba-disclosure">Scripted agents and model replies · shared local graph execution · invented requests · nothing sent</p>
   </div></article>
-  <article class="card note" id="r3-note" style="--x:2520px;--y:2180px;--w:1040px"><p class="small">The inner monitor follows a run through its steps and limits. The outer monitor keeps the original request, the outcomes across runs and the consequences of changing the flow in view.</p></article>
+  <article class="card note" id="r2-note" style="--x:1280px;--y:2180px;--w:1040px"><p class="small">The inner monitor follows a run through its steps and limits. The outer monitor keeps the original request, the outcomes across runs and the consequences of changing the flow in view.</p><p class="small"><a href="#r3">Next: data, security, traces and signals →</a></p></article>
+
+  <!-- ===================== region 3 ===================== -->
+  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:920px">
+    <header><h2>3 · Data, security, traces &amp; signals</h2><span class="chip">Shared records · enforced permissions · observable results</span></header>
+  </section>
+
+  <article class="card" id="r3-ask" style="--x:2520px;--y:540px;--w:420px">
+    <h3>Ask for a connection</h3>
+    <p class="small muted">One data model and one permission check, used by a person, a program and an agent. Change the boundary access and watch the result.</p>
+    <div class="stack">
+      <div class="row">
+        <label class="field">From <select id="w-from"></select></label>
+        <label class="field">To <select id="w-to"></select></label>
+        <label class="field">Access <select id="w-access"><option value="read">read</option><option value="write">write</option></select></label>
+      </div>
+      <label class="toggle small"><input type="checkbox" id="w-port"> Put a port on the private network's boundary</label>
+      <label class="field">That port allows
+        <select id="w-port-access" disabled><option value="read">read only</option><option value="readwrite">read and write</option></select>
+      </label>
+      <button class="btn primary" id="w-ask">Ask all three</button>
+      <div id="w-same"></div><p class="small muted" id="w-signal" role="status"></p><details class="security-trace" data-nopan><summary>Recent checks · trace</summary><ol id="w-trace"></ol></details>
+    </div>
+  </article>
+
+  <article class="card" id="r3-rule" style="--x:2980px;--y:540px;--w:580px">
+    <h3>The rule, written once</h3>
+    <p class="small muted">The UI, the HTTP API and the MCP server all call this one function. None of them has its own copy of the rule.</p>
+    <pre id="rule-src" style="max-height:210px"></pre>
+    <p class="small" style="margin-top:10px">In <a href="https://github.com/bdf1992/schematically">Schematically</a> a diagram is a model, not a drawing: boxes, boundaries, ports and wires with rules about what may connect. People edit it in the browser and agents edit it over HTTP or MCP, and every surface enforces the same rules, so a person and an agent get the same answer. This card is a small reconstruction of that idea, not the editor itself.</p>
+  </article>
+
+  <article class="card schem" id="r3-ui" style="--x:2520px;--y:1000px;--w:340px">
+    <h3>In the editor <span class="badge exact">person</span></h3>
+    <div id="schem"></div>
+    <div class="verdict" id="v-ui"></div>
+  </article>
+
+  <article class="card" id="r3-api" style="--x:2880px;--y:1000px;--w:340px">
+    <h3>Over HTTP <span class="badge exact">program</span></h3>
+    <pre id="v-api">—</pre>
+  </article>
+
+  <article class="card" id="r3-mcp" style="--x:3240px;--y:1000px;--w:340px">
+    <h3>Through MCP <span class="badge model">agent</span></h3>
+    <pre id="v-mcp">—</pre><p class="small"><a href="#r4">Next: generative UI →</a></p>
+  </article>
 
   <!-- ===================== region 4 ===================== -->
   <section class="frame" id="r4" style="--x:3720px;--y:460px;--w:1120px;--h:920px">
-    <header><h2>4 · One design system</h2><span class="chip">bdos-design · private, in development</span></header>
+    <header><h2>4 · Generative UI</h2><span class="chip">Design system + compiler · in development</span></header>
   </section>
 
   <article class="card" id="r4-pick" style="--x:3760px;--y:540px;--w:540px">
-    <h3>Pick a look</h3>
-    <p class="small muted">This whole page is dressed by bdos-design. Each look is one word; picking one swaps every colour, typeface, rounding and glass value on the canvas.</p>
+    <h3>One UI, different looks</h3>
+    <p class="small muted">A shared design system gives people and agents the same UI rules. Pick a look to change this page. The compiler contract below shows how an agent can request a consistent interface.</p>
     <div class="look-grid" id="look-grid"></div>
     <p class="small" id="look-mood" style="margin-top:10px"></p>
   </article>
@@ -163,7 +163,7 @@
 
   <article class="card" id="r4-api" style="--x:3760px;--y:910px;--w:540px">
     <h3>The same call an agent makes <span class="badge model">agent</span></h3>
-    <p class="small muted">An agent asks the design system's API for a page in a look and gets it back drawn with these tokens. The excerpt below is real compiler output for the look you picked.</p>
+    <p class="small muted">The example compile call takes a page definition and a look. This excerpt is real compiler output; the prototype does not call a live UI-generating agent.</p>
     <pre id="look-api"></pre>
   </article>
 
@@ -174,9 +174,9 @@
 </main>
 
 <script src="looks/looks.js"></script>
-<script src="canvas.js?v=27a827d09793"></script>
+<script src="canvas.js?v=71511907f53d"></script>
 <script src="bounded-model.js?v=3ecd441a5832"></script>
-<script src="demos.js?v=d6fff08b486a"></script>
+<script src="demos.js?v=b889dd046289"></script>
 <script src="workflow-view.js?v=4a7d21160020"></script>
 </body>
 </html>

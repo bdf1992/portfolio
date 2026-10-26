@@ -74,17 +74,17 @@
   // ---- connectors between cards ----
   const links = [
     ["intro", "b", "r1", "t"],
-    ["intro", "b", "r2", "t"],
     ["intro", "b", "r3", "t"],
+    ["intro", "b", "r2", "t"],
     ["intro", "b", "r4", "t"],
     ["r4-pick", "r", "r4-char", "l"],
     ["r4-pick", "b", "r4-api", "t", "same tokens", "live"],
     ["r1-graph", "r", "r1-case", "l", "", "live"],
-    ["r2-ask", "r", "r2-rule", "l"],
-    ["r2-rule", "b", "r2-ui", "t"],
-    ["r2-rule", "b", "r2-api", "t"],
-    ["r2-rule", "b", "r2-mcp", "t"],
-    ["r3-workspace", "b", "r3-note", "t", "same work, recorded results", "live"],
+    ["r3-ask", "r", "r3-rule", "l"],
+    ["r3-rule", "b", "r3-ui", "t"],
+    ["r3-rule", "b", "r3-api", "t"],
+    ["r3-rule", "b", "r3-mcp", "t"],
+    ["r2-workspace", "b", "r2-note", "t", "same work, recorded results", "live"],
   ];
   function anchor(b, side) {
     if (side === "t") return [b.x + b.w / 2, b.y];
@@ -98,8 +98,8 @@
     // Each row follows the tallest card above it, including after a look or content change.
     const regions = [
       { id: "r1", rows: [["r1-graph", "r1-case"], ["r1-note"]] },
-      { id: "r2", rows: [["r2-ask", "r2-rule"], ["r2-ui", "r2-api", "r2-mcp"]] },
-      { id: "r3", rows: [["r3-workspace"], ["r3-note"]] },
+      { id: "r2", rows: [["r2-workspace"], ["r2-note"]] },
+      { id: "r3", rows: [["r3-ask", "r3-rule"], ["r3-ui", "r3-api", "r3-mcp"]] },
       { id: "r4", rows: [["r4-pick", "r4-char"], ["r4-api", "r4-note"]] },
     ];
     for (const region of regions) {
@@ -186,7 +186,7 @@
 
   viewport.addEventListener("wheel", (e) => {
     if (document.body.classList.contains("reading")) return;
-    const scroller = e.target.closest(".log, .ledger-wrap, #ba-definition, pre");
+    const scroller = e.target.closest(".log, .ledger-wrap, #ba-definition, .security-trace ol, pre");
     if (scroller && !e.ctrlKey && scroller.scrollHeight > scroller.clientHeight) return;
     e.preventDefault();
     cancelAnimationFrame(anim);
@@ -217,10 +217,10 @@
     drawWires();
     setReading(true);
     const initial = location.hash.slice(1);
-    if (["r1", "r2", "r3", "r4"].includes(initial)) go(initial, true);
+    if (["r1", "r3", "r2", "r4"].includes(initial)) go(initial, true);
   });
   window.addEventListener("hashchange", () => {
     const id = location.hash.slice(1);
-    if (["r1", "r2", "r3", "r4"].includes(id)) go(id);
+    if (["r1", "r3", "r2", "r4"].includes(id)) go(id);
   });
 })();
