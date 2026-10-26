@@ -258,3 +258,5 @@ body.reading .card { scroll-margin-top: 70px; }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}body{transition:none}}
 
 .security-trace{border-top:1px solid var(--line);padding-top:12px;font-size:12px}.security-trace summary{cursor:pointer;font-weight:600}.security-trace ol{margin:10px 0 0;padding-left:20px;max-height:220px;overflow:auto}.security-trace li{margin:10px 0;line-height:1.6}.security-trace span{color:var(--muted)}
+
+.ba-readout:empty,#look-mood:empty{display:none}

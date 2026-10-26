@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 <link rel="stylesheet" id="look-css" href="looks/night-glass.css">
-<link rel="stylesheet" href="style.css?v=8e9972d6adcb">
+<link rel="stylesheet" href="style.css?v=840ebd934ae3">
 </head>
 <body>
 
@@ -39,9 +39,9 @@
   <article class="card intro" id="intro" style="--x:2110px;--y:0px;--w:620px">
     <h1>Brandon Freeman</h1>
     <p class="muted">Product Owner and Manager at Print Reach · <a href="https://github.com/bdf1992">github.com/bdf1992</a> · <a href="mailto:bdf1992.fb@gmail.com">bdf1992.fb@gmail.com</a></p>
-    <p class="lede">I design and build systems where people and AI agents work on the same records under the same rules. Follow four examples: a workflow, how an agent builds it, the data and security behind it, and the UI people use.</p>
+    <p class="lede">I turn business requirements into working software with AI agents.</p>
     <p><a class="intro-link" href="#r1">Start with the example workflow →</a></p>
-    <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo. The final example shows the design system and compiler contract behind agent-generated UI.</p>
+    <p class="small muted">Browser prototypes · sample data · scripted model responses.</p>
   </article>
 
   <!-- ===================== region 1 ===================== -->
@@ -50,8 +50,8 @@
   </section>
 
   <article class="card graph" id="r1-graph" style="--x:40px;--y:540px;--w:580px">
-    <h3>The graph the agent runs on</h3>
-    <p class="small muted">Each step is decided ahead of time to be run by a model, by exact logic, or by a person. Loops are allowed, and every loop has a limit.</p>
+    <h3>Workflow</h3>
+
     <p class="small muted" id="r1-path-source"></p><div id="graph"></div><p class="small muted" id="r1-runtime-note" role="status"></p>
     <div class="loops" id="loops"></div>
   </article>
@@ -74,26 +74,26 @@
   </article>
 
   <article class="card note" id="r1-note" style="--x:40px;--y:1050px;--w:580px">
-    <h3>What is real here</h3>
-    <p class="small">At Print Reach I am the product owner and manager for an internal AI system across four products, working with engineering and colleagues. Its design uses a graph with bounded loops, context chosen for each step, human review and recorded actions and results. My hands-on agent work there primarily turns project requirements into functional mocks and prototypes.</p>
-    <p class="small muted">This page shows none of the real system. The graph, the requests and the replies are invented.</p><p class="small"><a href="#r2">Next: how an agent builds this workflow →</a></p>
+    <h3>Work at Print Reach</h3>
+    <p class="small">Product owner for an internal AI system across four Print Reach products. I define requirements and workflows, build agent-assisted mocks and prototypes, and work with engineering on delivery.</p>
+    <p class="small"><a href="#r2">2 · Workflow generation →</a></p>
   </article>
 
   <!-- ===================== region 2 ===================== -->
-  <section class="frame" id="r2" style="--x:1240px;--y:460px;--w:1120px;--h:1650px"><header><h2>2 · Example workflow generation</h2><span class="chip">A request and a flow at each level</span></header></section>
+  <section class="frame" id="r2" style="--x:1240px;--y:460px;--w:1120px;--h:1650px"><header><h2>2 · Example workflow generation</h2></header></section>
   <article class="card wf-workspace" id="r2-workspace" style="--x:1280px;--y:540px;--w:1040px"><div id="workflow-workspace">
-    <div class="ba-title"><div><span class="ba-eyebrow">The outer flow</span><h3>Build a bounded support agent</h3></div><button class="btn small" id="ba-reset">Start over</button></div>
-    <div class="ba-pair ba-parent-pair"><section class="ba-graph-panel"><h4>The authoring agent’s path</h4><div class="graph ba-diagram" id="ba-parent-graph"></div><p class="ba-readout" id="ba-parent-detail" role="status">Select a step to see its tools.</p></section>
-      <section class="ba-intake"><span class="ba-eyebrow">Intake · build request</span><p id="ba-request"></p><button class="btn primary" id="ba-author">Build this flow</button><p class="ba-readout" id="ba-status" role="status" aria-live="polite"></p></section></div>
-    <section class="ba-created" id="ba-created" hidden><div class="ba-created-heading"><div><span class="ba-eyebrow">↓ The flow it created</span><h3 id="ba-child-title">The same agent as #1</h3></div><a href="#r1" class="btn small" id="ba-open">Open in #1 ↗</a></div>
-      <div class="ba-pair"><section class="ba-graph-panel"><div class="graph ba-diagram" id="ba-child-graph"></div><div class="ba-inner-monitor"><h4>Inner monitor · this run</h4><p id="ba-inner-summary" role="status"></p><p id="ba-inner-event"></p></div><p class="ba-readout" id="ba-node-detail" role="status">Select a step to inspect it.</p></section>
-        <section class="ba-intake"><span class="ba-eyebrow">Intake · customer request</span><label for="ba-case" class="sr-only">Customer request</label><select id="ba-case"></select><p id="ba-customer-request"></p><div class="row"><button class="btn" id="ba-step">Run next step</button><button class="btn primary" id="ba-run">Run to next stop</button></div><blockquote id="ba-draft" hidden></blockquote><div class="row" id="ba-review" hidden><button class="btn person" id="ba-approve">Approve</button><button class="btn person" id="ba-back">Send back</button></div><p class="ba-readout" id="ba-run-notice" role="status"></p></section></div>
+    <div class="ba-title"><div><span class="ba-eyebrow">Authoring agent</span><h3>Workflow builder</h3></div><button class="btn small" id="ba-reset">Start over</button></div>
+    <div class="ba-pair ba-parent-pair"><section class="ba-graph-panel"><h4>Authoring workflow</h4><div class="graph ba-diagram" id="ba-parent-graph"></div><p class="ba-readout" id="ba-parent-detail" role="status"></p></section>
+      <section class="ba-intake"><span class="ba-eyebrow">Build request</span><p id="ba-request"></p><button class="btn primary" id="ba-author">Build this flow</button><p class="ba-readout" id="ba-status" role="status" aria-live="polite"></p></section></div>
+    <section class="ba-created" id="ba-created" hidden><div class="ba-created-heading"><div><span class="ba-eyebrow">Generated workflow</span><h3 id="ba-child-title">Support workflow</h3></div><a href="#r1" class="btn small" id="ba-open">Open in #1 ↗</a></div>
+      <div class="ba-pair"><section class="ba-graph-panel"><div class="graph ba-diagram" id="ba-child-graph"></div><div class="ba-inner-monitor"><h4>Inner monitor · this run</h4><p id="ba-inner-summary" role="status"></p><p id="ba-inner-event"></p></div><p class="ba-readout" id="ba-node-detail" role="status"></p></section>
+        <section class="ba-intake"><span class="ba-eyebrow">Customer request</span><label for="ba-case" class="sr-only">Customer request</label><select id="ba-case"></select><p id="ba-customer-request"></p><div class="row"><button class="btn" id="ba-step">Run next step</button><button class="btn primary" id="ba-run">Run to next stop</button></div><blockquote id="ba-draft" hidden></blockquote><div class="row" id="ba-review" hidden><button class="btn person" id="ba-approve">Approve</button><button class="btn person" id="ba-back">Send back</button></div><p class="ba-readout" id="ba-run-notice" role="status"></p></section></div>
     </section>
-    <section class="ba-outer-monitor"><h4>Outer monitor · the whole request</h4><p id="ba-frame-goal"></p><p id="ba-frame-summary" class="ba-readout"></p><p id="ba-frame-decision" role="status"></p><p id="ba-frame-comparison" hidden></p><p id="ba-frame-tradeoff" hidden class="ba-readout"></p><button class="btn primary" id="ba-revise" hidden>Revise the path from this result</button></section>
+    <section class="ba-outer-monitor"><h4>Outer monitor · goal and outcomes</h4><p id="ba-frame-goal"></p><p id="ba-frame-summary" class="ba-readout"></p><p id="ba-frame-decision" role="status"></p><p id="ba-frame-comparison" hidden></p><p id="ba-frame-tradeoff" hidden class="ba-readout"></p><button class="btn primary" id="ba-revise" hidden>Revise the path from this result</button></section>
     <details id="ba-inspector"><summary>Inspect tools, limits and earlier runs</summary><div id="ba-budget"></div><label for="ba-definition-pick">Saved path</label><select id="ba-definition-pick"></select><pre id="ba-definition"></pre><ol id="ba-trace"></ol><div id="ba-history"></div></details>
-    <p class="ba-disclosure">Scripted agents and model replies · shared local graph execution · invented requests · nothing sent</p>
+
   </div></article>
-  <article class="card note" id="r2-note" style="--x:1280px;--y:2180px;--w:1040px"><p class="small">The inner monitor follows a run through its steps and limits. The outer monitor keeps the original request, the outcomes across runs and the consequences of changing the flow in view.</p><p class="small"><a href="#r3">Next: data, security, traces and signals →</a></p></article>
+  <article class="card note" id="r2-note" style="--x:1280px;--y:2180px;--w:1040px"><p class="small"><a href="#r3">3 · Data, security, traces and signals →</a></p></article>
 
   <!-- ===================== region 3 ===================== -->
   <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:920px">
@@ -102,7 +102,7 @@
 
   <article class="card" id="r3-ask" style="--x:2520px;--y:540px;--w:420px">
     <h3>Ask for a connection</h3>
-    <p class="small muted">One data model and one permission check, used by a person, a program and an agent. Change the boundary access and watch the result.</p>
+    <p class="small muted">Shared data and permissions across editor, HTTP and MCP.</p>
     <div class="stack">
       <div class="row">
         <label class="field">From <select id="w-from"></select></label>
@@ -119,10 +119,10 @@
   </article>
 
   <article class="card" id="r3-rule" style="--x:2980px;--y:540px;--w:580px">
-    <h3>The rule, written once</h3>
-    <p class="small muted">The UI, the HTTP API and the MCP server all call this one function. None of them has its own copy of the rule.</p>
+    <h3>Shared policy</h3>
+    <p class="small muted">Editor, HTTP and MCP use the same policy.</p>
     <pre id="rule-src" style="max-height:210px"></pre>
-    <p class="small" style="margin-top:10px">In <a href="https://github.com/bdf1992/schematically">Schematically</a> a diagram is a model, not a drawing: boxes, boundaries, ports and wires with rules about what may connect. People edit it in the browser and agents edit it over HTTP or MCP, and every surface enforces the same rules, so a person and an agent get the same answer. This card is a small reconstruction of that idea, not the editor itself.</p>
+    <p class="small" style="margin-top:10px"><a href="https://github.com/bdf1992/schematically">Schematically</a> provides typed diagrams with shared validation across browser, HTTP and MCP.</p>
   </article>
 
   <article class="card schem" id="r3-ui" style="--x:2520px;--y:1000px;--w:340px">
@@ -138,7 +138,7 @@
 
   <article class="card" id="r3-mcp" style="--x:3240px;--y:1000px;--w:340px">
     <h3>Through MCP <span class="badge model">agent</span></h3>
-    <pre id="v-mcp">—</pre><p class="small"><a href="#r4">Next: generative UI →</a></p>
+    <pre id="v-mcp">—</pre><p class="small"><a href="#r4">4 · Generative UI →</a></p>
   </article>
 
   <!-- ===================== region 4 ===================== -->
@@ -148,35 +148,35 @@
 
   <article class="card" id="r4-pick" style="--x:3760px;--y:540px;--w:540px">
     <h3>One UI, different looks</h3>
-    <p class="small muted">A shared design system gives people and agents the same UI rules. Pick a look to change this page. The compiler contract below shows how an agent can request a consistent interface.</p>
+    <p class="small muted">One page definition, seven compiled looks.</p>
     <div class="look-grid" id="look-grid"></div>
     <p class="small" id="look-mood" style="margin-top:10px"></p>
   </article>
 
   <article class="card" id="r4-char" style="--x:4340px;--y:540px;--w:460px">
-    <h3>What the look sets</h3>
+    <h3>Design tokens</h3>
     <table class="kv-table" id="look-char"></table>
-    <h3 style="margin-top:14px">The bars it is held to</h3>
+    <h3 style="margin-top:14px">Validation</h3>
     <p class="small muted" id="look-score"></p>
     <div id="look-measures"></div>
   </article>
 
   <article class="card" id="r4-api" style="--x:3760px;--y:910px;--w:540px">
-    <h3>The same call an agent makes <span class="badge model">agent</span></h3>
-    <p class="small muted">The example compile call takes a page definition and a look. This excerpt is real compiler output; the prototype does not call a live UI-generating agent.</p>
+    <h3>Compile contract <span class="badge model">agent</span></h3>
+    <p class="small muted">Saved compiler output for the selected look.</p>
     <pre id="look-api"></pre>
   </article>
 
   <article class="card note" id="r4-note" style="--x:4340px;--y:1130px;--w:460px">
-    <p class="small">bdos-design keeps a design system as data: tokens with a grammar, contracts checked in CI, and a compiler that people and agents both call. A look is offered only while it passes every measure in both light and dark. The token files on this page were compiled from it; the code is private for now.</p>
+    <p class="small">bdos-design · versioned tokens, validation contracts and HTML/CSS compilation. Private, in development.</p>
   </article>
 </div>
 </main>
 
 <script src="looks/looks.js"></script>
-<script src="canvas.js?v=71511907f53d"></script>
+<script src="canvas.js?v=51ccabea2872"></script>
 <script src="bounded-model.js?v=3ecd441a5832"></script>
-<script src="demos.js?v=b889dd046289"></script>
-<script src="workflow-view.js?v=4a7d21160020"></script>
+<script src="demos.js?v=edcb9cdc3285"></script>
+<script src="workflow-view.js?v=7bb3b69d01cc"></script>
 </body>
 </html>

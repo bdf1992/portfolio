@@ -84,7 +84,7 @@
     ["r3-rule", "b", "r3-ui", "t"],
     ["r3-rule", "b", "r3-api", "t"],
     ["r3-rule", "b", "r3-mcp", "t"],
-    ["r2-workspace", "b", "r2-note", "t", "same work, recorded results", "live"],
+    ["r2-workspace", "b", "r2-note", "t", "", "live"],
   ];
   function anchor(b, side) {
     if (side === "t") return [b.x + b.w / 2, b.y];

@@ -30,28 +30,28 @@
     const state=system.snapshot(),b=state.builder,run=state.current,path=state.path,{internal,external}=state.monitoring;
     if(run&&run.id!==lastRunId){el('ba-case').value=run.caseId;lastRunId=run.id;}
     el('ba-parent-graph').innerHTML=parentMarkup(state);
-    el('ba-parent-detail').textContent=chosenParent?parentNodes[chosenParent].detail:'Select a step to see its tools. The authoring agent has its own limits.';
+    el('ba-parent-detail').textContent=chosenParent?parentNodes[chosenParent].detail:'';
     el('ba-author').disabled=path.version>0;el('ba-author').textContent=path.version?`Created path v${path.version}`:'Build this flow';
-    el('ba-status').textContent=notice||(!path.version?'The result will be the actual flow in #1.':`Path v${path.version} is shared with #1.`);
+    el('ba-status').textContent=notice||(path.version?`Path v${path.version}`:'');
     el('ba-created').hidden=!path.version;
     if(path.version){
-      el('ba-child-title').textContent=`Support flow v${run?.pathVersion||path.version} · shared with #1`;
+      el('ba-child-title').textContent=`Support flow v${run?.pathVersion||path.version}`;
       el('ba-child-graph').innerHTML=window.boundedGraphMarkup(state,'child-arrow');
       const sample=BoundedModel.cases.find(item=>item.id===el('ba-case').value);
       el('ba-customer-request').textContent=sample.message;
       const busy=run&&['ready','running','review'].includes(run.status),canStart=b.runsUsed<b.maxRuns&&b.toolsUsed+2<=b.maxTools&&b.status!=='handoff';
       el('ba-case').disabled=Boolean(busy);el('ba-step').disabled=run?.status==='review'||(!busy&&!canStart);el('ba-run').disabled=el('ba-step').disabled;
-      el('ba-inner-summary').textContent=internal?`${states[internal.status]} · ${internal.label} · ${internal.steps}/${run.path.limits.steps} steps · ${internal.lookups}/${internal.lookupLimit} lookups`:'Waiting for its first customer request.';
-      el('ba-inner-event').textContent=internal?.lastEvent?.result||'The child will record its context, steps and stop conditions here.';
+      el('ba-inner-summary').textContent=internal?`${states[internal.status]} · ${internal.label} · ${internal.steps}/${run.path.limits.steps} steps · ${internal.lookups}/${internal.lookupLimit} lookups`:'Ready';
+      el('ba-inner-event').textContent=(internal?.lastEvent?.result||'').replace(' Stopping instead of guessing.','').replace(' Every step stays on the case; no external system was changed.','');
       el('ba-review').hidden=run?.status!=='review';el('ba-draft').hidden=run?.status!=='review';el('ba-draft').textContent=run?.status==='review'?run.draft:'';
       el('ba-run-notice').textContent=notice;
     }
     el('ba-frame-goal').textContent=external.goal+'.';
-    el('ba-frame-summary').textContent=external.summary.replace(/^1 authored runs:/,'1 authored run:')+(external.authoredRuns?external.limitsHeld?' Recorded runs respect their limits and approval rule.':' A constraint needs human review.':'');
-    el('ba-frame-decision').textContent=external.decision;
+    el('ba-frame-summary').textContent=external.summary.replace(/^1 authored runs:/,'1 authored run:')+(external.authoredRuns?external.limitsHeld?' Bounds and approval: pass.':' Bounds or approval: review required.':'');
+    el('ba-frame-decision').textContent=b.status==='handoff'?b.observation:!path.version?'Ready to build.':run?.status==='review'?'Awaiting approval.':run&&['ready','running'].includes(run.status)?'Run in progress.':b.canRevise?'Lookup limit reached. Revision available.':external.authoredRuns?'Run recorded.':'Ready for first run.';
     const comparison=external.comparison;el('ba-frame-comparison').hidden=!comparison;
-    el('ba-frame-comparison').textContent=comparison?`Same request, ${comparison.before.pathId} → ${comparison.after.pathId}: ${comparison.before.steps} → ${comparison.after.steps} steps; ${comparison.before.lookups} → ${comparison.after.lookups} lookups. Outcome: ${states[comparison.after.status].toLowerCase()}.`:'';
-    el('ba-frame-tradeoff').hidden=!external.tradeoff;el('ba-frame-tradeoff').textContent=external.tradeoff;
+    el('ba-frame-comparison').textContent=comparison?`${comparison.before.pathId} → ${comparison.after.pathId} · steps ${comparison.before.steps} → ${comparison.after.steps} · lookups ${comparison.before.lookups} → ${comparison.after.lookups} · ${states[comparison.after.status].toLowerCase()}`:'';
+    el('ba-frame-tradeoff').hidden=!external.tradeoff;el('ba-frame-tradeoff').textContent=external.tradeoff?'Earlier handoff: fewer lookups; more requests may need a person.':'';
     el('ba-revise').hidden=!b.canRevise;
     el('ba-budget').textContent=`Parent limits: ${b.toolsUsed}/${b.maxTools} tools · ${b.versionsUsed}/${b.maxVersions} paths · ${b.runsUsed}/${b.maxRuns} child runs`;
     if(!chosenPath||!state.paths.some(item=>item.id===chosenPath))chosenPath=path.id;

@@ -98,7 +98,7 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
     C=cases.find(item=>item.id===(run?.caseId||$("case-pick").value))||cases[0];
     S={node:run?.node||'intake',visited:new Set(run?.visited||[]),loops:run?.loops||{gather:0,revise:0},log:run?.log||[],done:!!run&&['complete','handoff','budget_exhausted'].includes(run.status),waiting:run?.status==='review'};
     LIMIT=(run?.path||view.path).limits;
-    $("r1-path-source").textContent=view.path.version?`Agent-authored path v${view.path.version} · monitored in #2`:'Base example · author a monitored version in #2';
+    $("r1-path-source").textContent=view.path.version?`Agent-authored workflow v${view.path.version}`:'Base workflow';
     if(run)$("case-pick").value=run.caseId;
     renderGraph();
     $("case-body").innerHTML = `<div class="muted">Message</div><div>${esc(C.message)}</div>`;
@@ -117,9 +117,9 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
     $("log").innerHTML = S.log.length
       ? S.log.slice().reverse().map((e) => `<li><div class="head"><b>${nodes[e.node].label}</b><span class="badge ${e.kind}">${e.kind === "exact" ? "exact logic" : e.kind}</span></div>
           <div class="kv">Given: <span>${esc(e.given)}</span></div>
-          <div class="kv">Result: <span>${esc(e.result)}</span></div>
+          <div class="kv">Result: <span>${esc(e.result.replace(" Stopping instead of guessing.","").replace(" Every step stays on the case; no external system was changed.",""))}</span></div>
           ${e.extra ? `<div class="kv">Draft: <span>${esc(e.extra)}</span></div>` : ""}</li>`).join("")
-      : `<li class="empty">Nothing has run yet. Every step will be written here.</li>`;
+      : `<li class="empty">Ready</li>`;
     redraw();
   }
 
@@ -191,12 +191,12 @@ function checkWire(doc, req) {
     const req = { from: $("w-from").value, to: $("w-to").value, access: $("w-access").value };
     const answers = [surfaces.ui(req), surfaces.http(req), surfaces.mcp(req)];
     const same = answers.every((a) => a.code === answers[0].code);
-    $("w-same").innerHTML = `<div class="same ${answers[0].ok ? "ok" : "no"}">${same ? `All three answered <b>${answers[0].code}</b>.` : "The surfaces disagree."} ${{ NO_PORT: "Try putting a port on the boundary.", PORT_READ_ONLY: "Try letting the port allow writes.", SAME_PART: "Pick two different parts." }[answers[0].code] || ""}</div>`;
+    $("w-same").innerHTML = `<div class="same ${answers[0].ok ? "ok" : "no"}">${same ? `UI · HTTP · MCP: <b>${answers[0].code}</b>` : "Interface mismatch"}</div>`;
     const allowed=same&&answers.every(answer=>answer.ok);
     checksSeen++;if(allowed)allowedChecks++;
     checks.push({id:checksSeen,from:req.from,to:req.to,access:req.access,port:doc.boundaryPort?.access||'none',codes:answers.map(answer=>answer.code)});
     if(checks.length>4)checks.shift();
-    $("w-signal").textContent=`Signal: ${allowedChecks} allowed · ${checksSeen-allowedChecks} refused · ${checksSeen} checked request${checksSeen===1?'':'s'}. Each was checked through all three interfaces.`;
+    $("w-signal").textContent=`Checks ${checksSeen} · allowed ${allowedChecks} · refused ${checksSeen-allowedChecks}`;
     $("w-trace").innerHTML=checks.slice().reverse().map(check=>`<li><strong>Check ${check.id}</strong> · ${esc(check.from)} → ${esc(check.to)} · ${esc(check.access)} · port: ${esc(check.port)}<br><span>UI ${esc(check.codes[0])} · HTTP ${esc(check.codes[1])} · MCP ${esc(check.codes[2])}</span></li>`).join('');
     redraw();
   }
@@ -270,11 +270,11 @@ function checkWire(doc, req) {
         <span class="sw"><i style="background:${l.character.Accent}"></i></span></button>`;
     }).join("");
     $("look-grid").querySelectorAll("button").forEach((b) => (b.onclick = () => pick(b.dataset.look)));
-    $("look-mood").textContent = L.mood;
+    $("look-mood").textContent = "";
     $("look-char").innerHTML = Object.entries(L.character).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(String(v).split(",")[0].replace(/"/g, ""))}</td></tr>`).join("");
-    $("look-score").textContent = `${L.passed} of ${L.total} measures pass across light and dark. The first five, in dark:`;
-    $("look-measures").innerHTML = L.measures.map((m) => `<div class="measure"><span class="badge ${m.ok ? "ok" : "no"}">${m.ok ? "pass" : "fail"}</span>
-      <span>${esc(m.says)} <span class="muted mono">${m.value} (${m.kind} ${m.bound})</span></span></div>`).join("");
+    $("look-score").textContent = `${L.passed}/${L.total} checks · light and dark; five shown (dark).`;
+    $("look-measures").innerHTML = L.measures.map((m,i) => `<div class="measure"><span class="badge ${m.ok ? "ok" : "no"}">${m.ok ? "pass" : "fail"}</span>
+      <span>${esc(["Text, controls and focus","High-contrast mode","Primary text contrast","Panel contrast","Raised-surface contrast"][i]||m.says)} <span class="muted mono">${m.value} (${m.kind} ${m.bound})</span></span></div>`).join("");
     const req = { look: current, document: { catalog: "bdos-design@0.1.0", title: "Approve a reply", root: { type: "page", "...": "" } } };
     $("look-api").textContent = `POST /v1/compile\n${JSON.stringify(req, null, 2)}\n\n← 200\n${JSON.stringify({ ok: true, look: current, brand: L.brand, css: `:root { --bd-color-accent: ${L.character.Accent}; --bd-radius-card: ${L.character["Card rounding"]}; … }`, html: "<!doctype html>…" }, null, 2)}`;
     redraw();
