@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 <link rel="stylesheet" id="look-css" href="looks/night-glass.css">
-<link rel="stylesheet" href="style.css?v=e4f70c5aac83">
+<link rel="stylesheet" href="style.css?v=9215acc923a5">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
     <button data-go="all">Overview</button>
     <button data-go="r1">1 · Bounded agents</button>
     <button data-go="r2">2 · One rule set</button>
-    <button data-go="r3">3 · Assistant workspace</button>
+    <button data-go="r3">3 · A working tool</button>
     <button data-go="r4">4 · One design system</button>
   </div>
   <div class="pill zoom-only">
@@ -40,7 +40,7 @@
     <h1>Brandon Freeman</h1>
     <p class="muted">Product Owner and Manager at Print Reach · <a href="https://github.com/bdf1992">github.com/bdf1992</a> · <a href="mailto:bdf1992.fb@gmail.com">bdf1992.fb@gmail.com</a></p>
     <p class="lede">I design and build systems where people and AI agents work on the same records under the same rules. These four interactive examples show how I approach that.</p>
-    <p><a class="intro-link" href="#r3">Follow an assistant from a business question to a working solution →</a></p>
+    <p><a class="intro-link" href="#r3">Try a tool built from a business request →</a></p>
     <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo. The page itself is styled by the design system in demo 4.</p>
   </article>
 
@@ -126,36 +126,14 @@
   </article>
 
   <!-- ===================== region 3 ===================== -->
-  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:2290px">
-    <header><h2>3 · An assistant with a workspace</h2><span class="chip">Tools, ordinary automation and agent engineering</span></header>
-  </section>
-  <article class="card wf-workspace" id="r3-workspace" style="--x:2520px;--y:540px;--w:1040px">
-    <div id="workflow-workspace">
-      <div class="ca-intro"><div><span class="ca-eyebrow">From a conversation to working systems</span><h3>Ask for help. Follow the work.</h3><p>The assistant can use tools directly, write an ordinary automation, or prepare engineering agents that author other agents and workflows.</p></div><button class="btn small" id="ca-reset">Reset example</button></div>
-      <p class="small muted ca-disclosure">Scripted conversation and simulated agents; no AI model calls. Invented data, local definitions and executions. No company systems or recurring schedules are connected.</p>
-      <div class="row" id="ca-workspaces" aria-label="Business workspace"></div><p class="small muted" id="ca-context"></p>
-      <div class="ca-columns">
-        <section class="ca-conversation" aria-labelledby="ca-talk-title">
-          <h4 id="ca-talk-title">Talk to the assistant</h4><p class="small muted">This workspace keeps the conversation. New specialist agents receive explicit briefs, with no inherited chat history.</p>
-          <div class="ca-examples" aria-label="Sample requests"><button class="btn small" data-example="direct">Find blocked work</button><button class="btn small" data-example="automation">Create a review rule</button><button class="btn small" data-example="delegate">Build a specialist agent</button></div>
-          <div class="ca-thread" id="ca-thread" aria-label="Conversation"></div>
-          <form id="ca-form"><label class="field" for="ca-request">Your request</label><textarea id="ca-request" rows="2" maxlength="500" placeholder="Ask what is blocked, automate a daily review, or build an agent…"></textarea><div class="row"><button class="btn primary" type="submit">Ask assistant</button><label class="toggle small"><input id="ca-step-mode" type="checkbox"> Step through tool calls</label></div></form>
-          <details class="ca-permissions" open><summary>Permissions in this workspace</summary><label class="toggle small"><input id="ca-grant-read" type="checkbox"> Read records and context</label><label class="toggle small"><input id="ca-grant-write" type="checkbox"> Create or revise draft definitions</label><label class="toggle small"><input id="ca-grant-execute" type="checkbox"> Run sample tools and checks</label><p class="small muted" id="ca-grant-scope"></p></details>
-          <div class="row ca-controls"><button class="btn" id="ca-next" disabled>Next action</button><button class="btn primary" id="ca-continue" disabled>Continue to next stop</button><button class="btn" id="ca-improve" hidden>Use this evidence to revise the agent</button></div>
-          <p role="status" aria-live="polite" id="ca-notice" class="small ca-notice">Choose a sample request, or write one using the example vocabulary.</p>
-        </section>
-        <section class="ca-inspect" aria-labelledby="ca-inspect-title"><div class="ca-run-heading"><h4 id="ca-inspect-title">Inspect the work</h4><span class="badge exact" id="ca-status"></span></div><p class="small" id="ca-run-label"></p><div class="ca-lineage" id="ca-lineage" aria-label="Who authors whom"></div><p class="small muted" id="ca-agent-count"></p>
-          <ol class="ca-plan" id="ca-plan" aria-label="Plan and tool calls"></ol><p class="small ca-step-detail" id="ca-step-detail"></p>
-          <div class="ca-artifact-tabs" id="ca-artifact-tabs" aria-label="Artifacts"></div><div class="ca-artifact" id="ca-artifact"></div>
-          <div class="row ca-review"><button class="btn person" id="ca-accept" disabled>Person accepts</button><button class="btn person" id="ca-reject" disabled>Person rejects</button></div>
-          <details class="ca-trace-details"><summary id="ca-trace-count">Tool trace</summary><ol class="ca-trace" id="ca-trace"></ol><div id="ca-child-trace"></div></details>
-        </section>
-      </div>
-      <div class="ca-bottom"><section><h4>Versions used by this request</h4><div class="ca-versions" id="ca-versions"></div><details class="ca-updates"><summary>Person changes a component</summary><label class="field">Component<select id="ca-component" aria-label="Component"><option value="base">Base workflow</option><option value="agent">Agent instructions</option><option value="tool">Policy tool</option><option value="execution">Execution rule</option><option value="customization">Local business context</option><option value="personalization">Personalization</option></select></label><p class="small muted" id="ca-update-description"></p><button class="btn" id="ca-update">Update for new requests</button><p class="small muted">Try a stricter base, then build an agent again. Its failed check gives the assistant evidence it can use to revise the worker.</p></details></section><section><h4>Compare requests</h4><div class="ca-history" id="ca-history"></div></section></div>
-    </div>
-  </article>
-  <article class="card note" id="r3-note" style="--x:2520px;--y:2690px;--w:1040px"><p class="small">My own workstation provides shared tools, scoped work contracts and delivery evidence. This example shows agents operating such an environment: helping directly, building ordinary automation, or authoring agents that use the same systems. The language and business cases are scripted; the authored definitions, lineage, live grants, checks and executions are inspectable JavaScript behavior.</p></article>
-
+  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:1120px"><header><h2>3 · From a request to a working tool</h2><span class="chip">Try a small example</span></header></section>
+  <article class="card wf-workspace" id="r3-workspace" style="--x:2520px;--y:540px;--w:1040px"><div id="workflow-workspace">
+    <div class="rt-conversation"><p><span>You</span>We keep handling reprint requests in email. Build a simple review tool for the team.</p><p><span>Assistant</span>I’ve put together a review screen and a draft. Compare the versions, edit the reply, and approve it when ready.</p></div>
+    <div class="rt-tool"><div class="rt-heading"><div><span class="rt-eyebrow">Customer care / Reprint review</span><h3 id="rt-case-title"></h3></div><span class="rt-status" id="rt-status"></span></div><p class="small muted" id="rt-case-detail"></p><div id="rt-panels"></div><div class="row rt-actions" id="rt-actions"></div><p id="rt-notice" role="status" aria-live="polite" class="small"></p></div>
+    <div class="rt-footer"><p>Interactive prototype · sample data · scripted agents · nothing sent</p><button class="btn small" id="rt-reset">Start over</button></div>
+    <details id="rt-inspector"><summary>How this was built</summary><p class="small">The assistant briefs an engineering agent. That agent defines the review screen, workflow and a fresh worker. The worker gets the case and tools it needs, without the earlier conversation.</p><div class="row rt-tabs" id="rt-artifact-tabs"></div><pre id="rt-definition" aria-label="Authored definition"></pre><details><summary>Execution trace</summary><ol id="rt-trace"></ol></details><details><summary>Does every request need another agent?</summary><p class="small">No. The assistant can read the records itself or create an ordinary rule.</p><div class="row"><button class="btn small" id="rt-direct">What’s waiting?</button><button class="btn small" id="rt-rule">Flag work over five days old</button></div><p id="rt-other-result" class="small" role="status"></p></details></details>
+  </div></article>
+  <article class="card note" id="r3-note" style="--x:2520px;--y:1560px;--w:1040px"><p class="small">This is the kind of system I want to help build with PICasso: turn a business need into a useful tool, with shared foundations, local requirements and a person in control of the result.</p></article>
 
   <!-- ===================== region 4 ===================== -->
   <section class="frame" id="r4" style="--x:3720px;--y:460px;--w:1120px;--h:920px">
@@ -190,10 +168,10 @@
 </main>
 
 <script src="looks/looks.js"></script>
-<script src="canvas.js?v=25ceaf6571ce"></script>
+<script src="canvas.js?v=a82c7f1716a2"></script>
 <script src="demos.js?v=8e279f395ee3"></script>
-<script src="workflow-model.js?v=a69c8fda0516"></script>
-<script src="assistant-model.js?v=573bbd657511"></script>
-<script src="workflow-view.js?v=e2c54f1b95ac"></script>
+<script src="workflow-model.js?v=23783f1b0642"></script>
+<script src="assistant-model.js?v=3e676b21daff"></script>
+<script src="workflow-view.js?v=2dc40427e9a5"></script>
 </body>
 </html>

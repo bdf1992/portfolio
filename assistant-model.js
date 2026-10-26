@@ -30,7 +30,7 @@
       components:{base:{version:1,requiresCitation:false},agent:{version:1,citePolicy:false},tool:{version:1,windowDays:7},execution:{version:1,maxActions:12}},
       workspaces:{
         print:makeWorkspace('print','Print shop','Print production','Check the approved proof before offering a reprint.','The delivered menus do not match the approved proof.',[
-          {id:'P-104',name:'Menu proof',status:'waiting',ageDays:8,reason:'Waiting for customer approval'},
+          {id:'P-104',name:'Menu reprint review',status:'waiting',ageDays:8,reason:'Waiting for a reprint decision'},
           {id:'P-108',name:'Poster proof',status:'waiting',ageDays:6,reason:'Waiting for a corrected file'},
           {id:'P-112',name:'Business cards',status:'ready',ageDays:1,reason:'Approved for production'}]),
         field:makeWorkspace('field','Field service','Equipment service','Check the service record before offering a return visit.','The repaired unit has stopped working again.',[
@@ -39,6 +39,9 @@
           {id:'S-211',name:'Routine service',status:'ready',ageDays:1,reason:'Visit confirmed'}])
       }
     };
+    state.workspaces.print.case={id:'P-104',customer:'Harbor Street Bakery',quantity:500,ageDays:10,
+      approved:{name:'Menu · approved v3',item:'Lunch special',price:'$12'},
+      delivered:{name:'Menu · delivered v2',item:'Lunch special',price:'$10'}};
     function workspace(id=state.activeWorkspace) { if (!Object.hasOwn(state.workspaces,id)) throw new Error('Unknown workspace'); return state.workspaces[id]; }
     function findRun(id) { const run=state.runs.find(item=>item.id===id); if (!run) throw new Error('Unknown run'); return run; }
     function message(run,text) { workspace(run.workspaceId).messages.push({role:'assistant',text,runId:run.id}); }
@@ -140,14 +143,17 @@
       if (tool==='workflow.define') {
         run.artifacts.workflow={id:`Workflow-${run.id.split(' ')[1]}`,createdBy:run.artifacts.engineer.id,baseVersion:run.versions.base,workspaceId:w.id,
           localInstruction:run.pins.workspace.focus,channel:w.id==='print'?'Email':'Customer portal',
-          nodes:['intake','policy','draft',...(run.pins.components.base.requiresCitation?['check']:[]),'review']};
+          nodes:['intake','policy','draft',...(run.pins.components.base.requiresCitation?['check']:[]),'review'],
+          surface:{kind:'case-review',panels:['source-files','reply'],actions:['approve-draft','send-back'],humanApproval:true}};
         record(run,actor,tool,'authored',`Created a workspace-specific workflow from base v${run.versions.base}.`);
       }
       if (tool==='agents.define'&&actor==='Engineering agent') {
+        const sourceCase=run.pins.workspace.case;
+        const request=sourceCase?`The approved menu shows the ${sourceCase.approved.item.toLowerCase()} at ${sourceCase.approved.price}; the delivered version shows ${sourceCase.delivered.price}.`:run.pins.workspace.issue;
         run.artifacts.worker={id:`Worker-${run.id.split(' ')[1]}`,role:'Business worker',createdBy:run.artifacts.engineer.id,workspaceId:w.id,
           workflowId:run.artifacts.workflow.id,instructions:'Use the case, local instruction and policy to prepare a draft for review.',
           citePolicy:run.pins.components.agent.citePolicy,allowedTools:clone(workerTools),conversationHistory:[],
-          context:{domain:run.pins.workspace.domain,request:run.pins.workspace.issue,tone:run.pins.workspace.preferences.tone},
+          context:{domain:run.pins.workspace.domain,request,tone:run.pins.workspace.preferences.tone,...(sourceCase?{case:clone(sourceCase)}:{})},
           grantSource:`Live ${w.id} grants; preparation only, no sending`};
         record(run,actor,tool,'authored',`${run.artifacts.worker.id} is a new agent definition, linked to ${run.artifacts.workflow.id} and the engineer that authored it.`);
       }
@@ -185,6 +191,13 @@
       const run=findRun(id);if(run.status!=='review'||typeof accepted!=='boolean')throw new Error('No result is awaiting review');
       run.status=accepted?'accepted':'rejected';record(run,'Person','review',run.status,'This accepts or rejects the example result. Nothing is deployed or sent.');return clone(run);
     }
+    function editDraft(id,text) {
+      const run=findRun(id);
+      if(run.status!=='review'||typeof text!=='string'||!text.trim()||text.length>1000)throw new Error('Edit an awaiting draft using 1 to 1000 characters');
+      run.result.output={...run.result.output,text:text.trim(),manuallyEdited:true};
+      record(run,'Person','draft.edit','saved','The reviewer edited the draft. The original worker output is preserved. Nothing was sent.');
+      return clone(run);
+    }
     function reviseFromEvidence(id) {
       const source=findRun(id), w=workspace();
       if(source.workspaceId!==w.id||source.status!=='needs_revision'||source.artifacts.checks?.sampleStatus!=='needs_revision')throw new Error('No failed citation check to revise here');
@@ -195,7 +208,7 @@
       record(findRun(next.id),'Assistant','evidence.read','used',`Read the failed sample output in ${source.id}; revised agent instructions to require the policy source. The earlier artifacts are preserved.`);
       return clone(findRun(next.id));
     }
-    return {snapshot:()=>clone(state),versions,submit,advance,runToStop,setGrant,updateComponent,review,reviseFromEvidence,
+    return {snapshot:()=>clone(state),versions,submit,advance,runToStop,setGrant,updateComponent,review,editDraft,reviseFromEvidence,
       selectWorkspace:id=>{workspace(id);state.activeWorkspace=id;}};
   }
   return {createEngine,routeRequest,validateWorker,labels};

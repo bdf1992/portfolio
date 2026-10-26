@@ -142,7 +142,7 @@
         const opening = run.packet.tone === 'warm' ? 'Thanks for letting us know. I understand this has caused disruption. ' : '';
         const decision = run.policy.eligible ? `We can arrange ${remedy} at no charge, subject to confirmation of the case details.` : `We will review the case details before confirming ${remedy} at no charge.`;
         const citation = run.pins.agent.citePolicy ? ` Source: policy v${run.policy.version}, ${run.policy.windowDays}-day window.` : '';
-        run.output = { channel: run.packet.channel, text: `${opening}${decision}${citation}`, focus: run.packet.focus,
+          run.output = { channel: run.packet.channel, text: `${opening}${run.packet.request} ${decision}${citation}`, focus: run.packet.focus,
           citation: run.pins.agent.citePolicy, sent: false };
         event(run, 'agent', node, 'drafted', `${run.output.channel} draft prepared using ${run.packet.tone} personalization. ${run.output.text}`);
       }

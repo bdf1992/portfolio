@@ -9,15 +9,12 @@ One pan-and-zoom canvas with four small demos, each running in the browser on in
 2. **One rule set**: one function decides whether a wire may cross a boundary, and the editor, an
    HTTP API and an MCP tool call all ask it, so a person and an agent get the same answer.
    Based on [Schematically](https://github.com/bdf1992/schematically).
-3. **Assistant workspace**: the conversation is an interface to shared tools. A request can be
-   answered directly from records, become an ordinary deterministic automation, or lead the assistant
-   to prepare an engineering agent. That engineer authors a workflow and a fresh business worker;
-   their actual definitions are checked and executed. The new agents receive explicit briefs without
-   inherited chat history and use tools within live workspace grants. Inspect lineage, definitions,
-   checks and execution; use a failed check to author a revised version. Each request pins its base,
-   instructions, tools, execution rule, local context and personalization. The print example starts
-   with a read grant; writing and execution require separate grants. Conversations are scripted,
-   with no real provider, company data, external actions or recurring schedules.
+3. **A working review tool**: one short request leads to a usable reprint-review screen. Compare
+   invented proof versions, edit the worker’s draft and approve or send it back. The authored screen
+   definition drives its panels and actions. Original worker output survives human edits. Optional
+   inspection shows the assistant → engineer → worker definitions and local execution trace,
+   plus direct tool help and ordinary automation. Agents are scripted; no live AI or external
+   actions are connected. Read/write/execute grants are preset for this isolated sample.
 4. **One design system**: the page is dressed by bdos-design. Pick one of its seven looks and the whole
    canvas changes, with the measures each look passes and the compile call an agent would make.
    `looks/*.css` and `looks/looks.js` are compiled from bdos-design (`bdos-design compile`, `bdos-design looks --json`).
@@ -33,7 +30,7 @@ workflow at https://bdo.recd.stream/#r3. Prior usage estimates have been removed
 
 The models are separate from their DOM view. `assistant-model.js` coordinates tools and authors
 definitions; `workflow-model.js` executes the authored worker graph and settings. Both expose the same
-state transitions to Node and the browser. `workflow-view.js` binds the conversation and inspectors.
+state transitions to Node and the browser. `workflow-view.js` binds the authored review surface and optional inspectors.
 Run the bounded routine check with:
 
 ```

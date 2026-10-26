@@ -138,7 +138,7 @@
   // ---- input ----
   const pointers = new Map();
   let pan = null, pinch = null;
-  const interactive = "button, a, input, select, textarea, label, pre, summary, .log, .ledger-wrap, #ca-thread, #ca-history, #ca-plan, #ca-trace, .schem svg, [data-nopan]";
+  const interactive = "button, a, input, select, textarea, label, pre, summary, .log, .ledger-wrap, #rt-definition, .schem svg, [data-nopan]";
 
   viewport.addEventListener("pointerdown", (e) => {
     if (document.body.classList.contains("reading")) return;
@@ -186,7 +186,7 @@
 
   viewport.addEventListener("wheel", (e) => {
     if (document.body.classList.contains("reading")) return;
-    const scroller = e.target.closest(".log, .ledger-wrap, #ca-thread, #ca-history, #ca-plan, #ca-trace, pre");
+    const scroller = e.target.closest(".log, .ledger-wrap, #rt-definition, pre");
     if (scroller && !e.ctrlKey && scroller.scrollHeight > scroller.clientHeight) return;
     e.preventDefault();
     cancelAnimationFrame(anim);

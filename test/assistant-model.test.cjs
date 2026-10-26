@@ -58,6 +58,7 @@ test('the assistant authors an engineer which authors the workflow and cold work
   assert.equal(execution.packet.tone,worker.context.tone);
   assert.equal(execution.packet.conversationHistory.length,0);
   assert.deepEqual(execution.nodes,workflow.nodes);
+  assert.deepEqual(workflow.surface,{kind:'case-review',panels:['source-files','reply'],actions:['approve-draft','send-back'],humanApproval:true});
   assert.match(r.result.output.text,/return visit/);assert.match(r.result.output.text,/at no charge/);
   assert.equal(r.result.additionalAgents,2);assert.equal(r.result.createdBy,engineer.id);
   assert.ok(r.trace.some(item=>item.actor==='Engineering agent'&&item.tool==='agents.define'));
@@ -143,7 +144,17 @@ test('the pinned action budget bounds a request and preserves partial work',()=>
 test('a person can accept or reject a proposed result without sending or deploying anything',()=>{
   const e=allow(createEngine()), first=finish(e);
   assert.throws(()=>e.review(first.id,'yes'));
+  for(const text of ['',null,'x'.repeat(1001)])assert.throws(()=>e.editDraft(first.id,text));
+  const original=structuredClone(first.artifacts.execution.output);
+  assert.deepEqual(first.artifacts.worker.context.case,first.pins.workspace.case);
+  assert.match(original.text,/\$12.*\$10/);
+  const edited=e.editDraft(first.id,'We will check the approved proof before confirming a reprint.');
+  assert.equal(edited.result.output.manuallyEdited,true);
+  assert.deepEqual(edited.artifacts.execution.output,original);
+  assert.equal(edited.trace.at(-1).tool,'draft.edit');
   const accepted=e.review(first.id,true);
+  assert.equal(accepted.result.output.text,edited.result.output.text);
+  assert.throws(()=>e.editDraft(first.id,'Too late'));
   assert.equal(accepted.status,'accepted');assert.equal(accepted.result.sent,false);
   assert.equal(accepted.result.output.sent,false);assert.equal(accepted.trace.at(-1).actor,'Person');
   assert.deepEqual(e.advance(first.id),accepted);assert.throws(()=>e.review(first.id,true));
