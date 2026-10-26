@@ -48,7 +48,39 @@
     const listeners=new Set();
     function initial(){const path=pathDefinition(0,{gather:3,revise:2,steps:24});return {path,current:null,runs:[],paths:[path],builder:{status:'ready',toolsUsed:0,maxTools:14,versionsUsed:0,maxVersions:2,runsUsed:0,maxRuns:3,trace:[],observation:'Author a bounded path, then monitor its runs in #1.',canRevise:false,evidence:null}};}
     state=initial();
-    function snapshot(){return copy(state);}
+    function monitoring(){
+      const run=state.current,b=state.builder,runs=state.runs.filter(item=>item.pathVersion>0);
+      const completed=runs.filter(item=>item.status==='complete').length,awaitingReview=runs.filter(item=>item.status==='review').length;
+      const handoffs=runs.filter(item=>item.status==='handoff'||item.status==='budget_exhausted').length;
+      const internal=run?{runId:run.id,pathId:run.pathId,status:run.status,node:run.node,label:nodeCatalog[run.node].label,
+        steps:run.steps,lookups:run.loops.gather,lookupLimit:run.path.limits.gather,revisions:run.loops.revise,
+        revisionLimit:run.path.limits.revise,lastEvent:run.log.at(-1)||null}:null;
+      const limitsHeld=b.toolsUsed<=b.maxTools&&b.versionsUsed<=b.maxVersions&&b.runsUsed<=b.maxRuns&&state.runs.every(item=>
+        item.steps<=item.path.limits.steps&&item.loops.gather<=item.path.limits.gather&&item.loops.revise<=item.path.limits.revise
+        &&item.externalActions===false&&item.log.every((entry,index)=>entry.node!=='act'||item.log.slice(0,index).some(prior=>prior.node==='confirm'&&prior.result==='Approved by a person.')));
+      const outcome=item=>({runId:item.id,pathId:item.pathId,steps:item.steps,lookups:item.loops.gather,status:item.status});
+      let comparison=null;
+      for(let i=runs.length-1;i>=0&&!comparison;i--){
+        const after=runs[i];if(!terminal.has(after.status))continue;
+        const before=runs.slice(0,i).reverse().find(item=>item.caseId===after.caseId&&item.pathVersion!==after.pathVersion&&terminal.has(item.status));
+        if(before)comparison={caseId:after.caseId,before:outcome(before),after:outcome(after)};
+      }
+      const summary=runs.length?`${runs.length} authored runs: ${completed} completed after approval, ${awaitingReview} awaiting review, ${handoffs} stopped for a person.`:'No authored run outcomes yet.';
+      let decision;
+      if(!state.path.version)decision='Author a bounded flow from the request before assessing its results.';
+      else if(b.status==='handoff')decision='The authoring agent has stopped. A person must review the frame or reset this example.';
+      else if(run&&['ready','running'].includes(run.status))decision='Continue the current run before judging its outcome.';
+      else if(run?.status==='review')decision='Wait for a person to review the draft; no completed outcome is claimed yet.';
+      else if(comparison)decision=`For the same request, the revised path used ${comparison.after.lookups} lookups and ${comparison.after.steps} steps; the earlier path used ${comparison.before.lookups} lookups and ${comparison.before.steps} steps. Both outcomes remain recorded.`;
+      else if(b.canRevise)decision='The lookup limit was reached without identifying the request. Try an earlier human handoff, then compare the same request.';
+      else if(awaitingReview)decision='Wait for a person to review the draft; no completed outcome is claimed yet.';
+      else if(!runs.length)decision='Run a request through the authored flow to assess whether it meets the original request.';
+      else decision='Review the recorded outcomes against the original request before changing the flow.';
+      return {internal,external:{request,goal:'Resolve identifiable requests without guessing or bypassing approval',authoredRuns:runs.length,
+        completed,awaitingReview,handoffs,limitsHeld,summary,decision,
+        tradeoff:state.path.missing==='handoff'?'Earlier handoff avoids repeated lookups, but may hand off requests a lookup could have resolved.':'',comparison}};
+    }
+    function snapshot(){return copy({...state,monitoring:monitoring()});}
     function emit(){for(const listener of listeners)listener(snapshot());}
     function trace(tool,result,detail,extra={}){const b=state.builder;b.trace.push({sequence:b.trace.length+1,tool,result,detail,...extra});}
     function refuse(reason){const b=state.builder;b.status='handoff';b.observation=reason;b.canRevise=false;

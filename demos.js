@@ -28,7 +28,7 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
   function runToStop(){act(()=>{ensureRun();system.runToStop();});}
   function decide(ok){act(()=>system.decide(ok));}
 
-  function edge(a, b, opts = {}) {
+  function edge(a, b, opts = {}, markerId = "arrow") {
     const A = nodes[a], B = nodes[b];
     let x1, y1, x2, y2;
     if (A.y === B.y) { // same row
@@ -44,22 +44,24 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
       ? `M${x1},${y1} C${x1},${y1 + 70} ${x2 + 60},${y2 + 70} ${x2},${y2 + 10}`
       : `M${x1},${y1} L${x2},${y2}`;
     const lx = opts.lx ?? (x1 + x2) / 2, ly = opts.ly ?? (y1 + y2) / 2 - 5;
-    return `<path class="edge ${opts.loop ? "loop" : ""}" d="${d}" marker-end="url(#arrow)"/>` +
+    return `<path class="edge ${opts.loop ? "loop" : ""}" d="${d}" marker-end="url(#${markerId})"/>` +
       (opts.label ? `<text class="edge-label" x="${lx}" y="${ly}" text-anchor="${opts.anchor || "middle"}">${opts.label}</text>` : "");
   }
 
-  function renderGraph() {
+  function graphMarkup(snapshot, markerId='arrow') {
+    const run=snapshot.current,path=run?.path||snapshot.path;
+    const S={node:run?.node||'intake',visited:new Set(run?.visited||[]),done:!!run&&['complete','handoff','budget_exhausted'].includes(run.status)};
+    const LIMIT=path.limits;
     const kindName = { model: "model", exact: "exact logic", person: "person" };
     let s = `<svg viewBox="0 0 720 410" role="img" aria-label="Agent graph">
-      <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>`;
-    const path=view.current?.path||view.path;
+      <defs><marker id="${markerId}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>`;
     for(const link of path.edges){
       if(link.from==='classify'&&link.to==='handoff'){
-        s+=`<path class="edge" d="M320,70 V110 H90 V180" marker-end="url(#arrow)"/><text class="edge-label" x="200" y="100" text-anchor="middle">missing info → person</text>`;
+        s+=`<path class="edge" d="M320,70 V110 H90 V180" marker-end="url(#${markerId})"/><text class="edge-label" x="200" y="100" text-anchor="middle">missing info → person</text>`;
         continue;
       }
       if(link.from==='confirm'&&link.to==='handoff'){
-        s+=`<path class="edge loop" d="M475,205 H442 V272 H190 V205 H165" marker-end="url(#arrow)"/><text class="edge-label" x="320" y="263" text-anchor="middle">revision limit → person</text>`;
+        s+=`<path class="edge loop" d="M475,205 H442 V272 H190 V205 H165" marker-end="url(#${markerId})"/><text class="edge-label" x="320" y="263" text-anchor="middle">revision limit → person</text>`;
         continue;
       }
       const key=link.from+'>'+link.to;
@@ -72,7 +74,7 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
         'confirm>draft':{off:22,loop:true,label:`sent back, max ${LIMIT.revise}`,lx:584,ly:130,anchor:'start'},
         'confirm>act':{label:'approved',lx:562,ly:290,anchor:'start'}
       };
-      s+=edge(link.from,link.to,styles[key]||{});
+      s+=edge(link.from,link.to,styles[key]||{},markerId);
     }
     for (const [id, n] of Object.entries(nodes)) {
       if(!path.nodes.includes(id))continue;
@@ -81,7 +83,11 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
         <text x="${n.x + 10}" y="${n.y + 19}">${n.label}</text>
         <text class="kind" x="${n.x + 10}" y="${n.y + 36}">${kindName[n.kind]}</text></g>`;
     }
-    $("graph").innerHTML = s + "</svg>";
+    return s + "</svg>";
+  }
+  window.boundedGraphMarkup=graphMarkup;
+  function renderGraph(){
+    $("graph").innerHTML=graphMarkup(view,'arrow');
     const meter = (n, max) => `<span class="meter">${Array.from({ length: max }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}</span>`;
     $("loops").innerHTML = `<span>Lookups ${meter(S.loops.gather, LIMIT.gather)}</span><span>Revisions ${meter(S.loops.revise, LIMIT.revise)}</span>`;
   }

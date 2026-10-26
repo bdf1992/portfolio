@@ -12,7 +12,7 @@ One pan-and-zoom canvas with four small demos, each running in the browser on in
 3. **Author and monitor #1**: the request and scoped tools let a bounded authoring agent create
    the actual graph used in demo1. Both surfaces share one model. Child steps, human-review stops,
    outcomes and limits feed its monitor. A lookup-limit handoff can produce a retained revision that
-   sends missing context to a person earlier. Parent versions, tools and child runs are bounded too.
+   sends missing context to a person earlier. Parent versions, tools and child runs are bounded too. Both levels have an intake; the inner monitor follows a run, while the outer monitor checks the original goal, constraints, outcomes and same-case comparisons across versions.
    Authoring and model replies are scripted; graph execution and monitoring are local state transitions.
 4. **One design system**: the page is dressed by bdos-design. Pick one of its seven looks and the whole
    canvas changes, with the measures each look passes and the compile call an agent would make.

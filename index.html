@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 <link rel="stylesheet" id="look-css" href="looks/night-glass.css">
-<link rel="stylesheet" href="style.css?v=5adacb85187d">
+<link rel="stylesheet" href="style.css?v=c84219b18cf0">
 </head>
 <body>
 
@@ -126,24 +126,20 @@
   </article>
 
   <!-- ===================== region 3 ===================== -->
-  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:1100px"><header><h2>3 · The agent that builds and watches #1</h2><span class="chip">Bounded authoring · shared execution</span></header></section>
+  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:1650px"><header><h2>3 · How an agent builds and monitors #1</h2><span class="chip">A request and a flow at each level</span></header></section>
   <article class="card wf-workspace" id="r3-workspace" style="--x:2520px;--y:540px;--w:1040px"><div id="workflow-workspace">
-    <div class="ba-request"><span class="ba-label">The request</span><p id="ba-request"></p></div>
-    <div class="ba-heading"><h3>Authoring agent</h3><button class="btn small" id="ba-reset">Reset example</button></div>
-    <div class="ba-budget" id="ba-budget" aria-label="Authoring agent limits"></div>
-    <div class="ba-tools" id="ba-tools" aria-label="Available tools"></div><p id="ba-tool-detail" class="small muted">Select a tool to see what it can do.</p>
-    <div class="row ba-controls"><button class="btn primary" id="ba-author">Author the #1 flow</button><a href="#r1" class="btn" id="ba-open">Open the flow in #1 ↗</a></div>
-    <p id="ba-status" class="small" role="status" aria-live="polite"></p>
-    <section class="ba-monitor"><div class="ba-heading"><h3 id="ba-monitor-title">Watching the #1 flow</h3><span class="badge exact" id="ba-child-status">Base example</span></div>
-      <div class="ba-run"><label for="ba-case">Try a request<select id="ba-case"></select></label><button class="btn" id="ba-run" disabled>Run authored flow</button></div>
-      <ol id="ba-events" aria-label="Observed child run"></ol>
-      <blockquote id="ba-draft" hidden></blockquote><div class="row" id="ba-review" hidden><button class="btn person" id="ba-approve">Person approves and continues</button><button class="btn person" id="ba-back">Person sends back</button></div>
-      <p class="small" id="ba-observation" role="status"></p><button class="btn primary" id="ba-revise" hidden>Author an earlier handoff path</button>
+    <div class="ba-title"><div><span class="ba-eyebrow">The outer flow</span><h3>Build a bounded support agent</h3></div><button class="btn small" id="ba-reset">Start over</button></div>
+    <div class="ba-pair ba-parent-pair"><section class="ba-graph-panel"><h4>The authoring agent’s path</h4><div class="graph ba-diagram" id="ba-parent-graph"></div><p class="ba-readout" id="ba-parent-detail" role="status">Select a step to see its tools.</p></section>
+      <section class="ba-intake"><span class="ba-eyebrow">Intake · build request</span><p id="ba-request"></p><button class="btn primary" id="ba-author">Build this flow</button><p class="ba-readout" id="ba-status" role="status" aria-live="polite"></p></section></div>
+    <section class="ba-created" id="ba-created" hidden><div class="ba-created-heading"><div><span class="ba-eyebrow">↓ The flow it created</span><h3 id="ba-child-title">The same agent as #1</h3></div><a href="#r1" class="btn small" id="ba-open">Open in #1 ↗</a></div>
+      <div class="ba-pair"><section class="ba-graph-panel"><div class="graph ba-diagram" id="ba-child-graph"></div><div class="ba-inner-monitor"><h4>Inner monitor · this run</h4><p id="ba-inner-summary" role="status"></p><p id="ba-inner-event"></p></div><p class="ba-readout" id="ba-node-detail" role="status">Select a step to inspect it.</p></section>
+        <section class="ba-intake"><span class="ba-eyebrow">Intake · customer request</span><label for="ba-case" class="sr-only">Customer request</label><select id="ba-case"></select><p id="ba-customer-request"></p><div class="row"><button class="btn" id="ba-step">Run next step</button><button class="btn primary" id="ba-run">Run to next stop</button></div><blockquote id="ba-draft" hidden></blockquote><div class="row" id="ba-review" hidden><button class="btn person" id="ba-approve">Approve</button><button class="btn person" id="ba-back">Send back</button></div><p class="ba-readout" id="ba-run-notice" role="status"></p></section></div>
     </section>
-    <details id="ba-inspector"><summary>Definitions, tool calls and earlier runs</summary><label for="ba-definition-pick" class="small">Saved path</label><select id="ba-definition-pick"></select><pre id="ba-definition"></pre><ol id="ba-trace"></ol><div id="ba-history"></div></details>
-    <p class="ba-disclosure">Scripted authoring and model replies · real local graph execution · invented cases · nothing sent</p>
+    <section class="ba-outer-monitor"><h4>Outer monitor · the whole request</h4><p id="ba-frame-goal"></p><p id="ba-frame-summary" class="ba-readout"></p><p id="ba-frame-decision" role="status"></p><p id="ba-frame-comparison" hidden></p><p id="ba-frame-tradeoff" hidden class="ba-readout"></p><button class="btn primary" id="ba-revise" hidden>Revise the path from this result</button></section>
+    <details id="ba-inspector"><summary>Inspect tools, limits and earlier runs</summary><div id="ba-budget"></div><label for="ba-definition-pick">Saved path</label><select id="ba-definition-pick"></select><pre id="ba-definition"></pre><ol id="ba-trace"></ol><div id="ba-history"></div></details>
+    <p class="ba-disclosure">Scripted agents and model replies · shared local graph execution · invented requests · nothing sent</p>
   </div></article>
-  <article class="card note" id="r3-note" style="--x:2520px;--y:1540px;--w:1040px"><p class="small">#1 is the bounded agent doing the work. #3 supplies the request and tools for a bounded agent to author that path, monitor its runs and create a revision from the evidence.</p></article>
+  <article class="card note" id="r3-note" style="--x:2520px;--y:2180px;--w:1040px"><p class="small">The inner monitor follows a run through its steps and limits. The outer monitor keeps the original request, the outcomes across runs and the consequences of changing the flow in view.</p></article>
 
   <!-- ===================== region 4 ===================== -->
   <section class="frame" id="r4" style="--x:3720px;--y:460px;--w:1120px;--h:920px">
@@ -179,8 +175,8 @@
 
 <script src="looks/looks.js"></script>
 <script src="canvas.js?v=27a827d09793"></script>
-<script src="bounded-model.js?v=08e81ad144c7"></script>
-<script src="demos.js?v=54681ef2e368"></script>
-<script src="workflow-view.js?v=44cd7ffa5ed7"></script>
+<script src="bounded-model.js?v=3ecd441a5832"></script>
+<script src="demos.js?v=d6fff08b486a"></script>
+<script src="workflow-view.js?v=4a7d21160020"></script>
 </body>
 </html>
