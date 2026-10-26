@@ -9,12 +9,11 @@ One pan-and-zoom canvas with four small demos, each running in the browser on in
 2. **One rule set**: one function decides whether a wire may cross a boundary, and the editor, an
    HTTP API and an MCP tool call all ask it, so a person and an agent get the same answer.
    Based on [Schematically](https://github.com/bdf1992/schematically).
-3. **Intake workflow**: an assistant briefs an engineering agent with a team’s requirements.
-   The engineer authors a reusable triage definition. Its ordered rules check required information,
-   prioritize outages and route requests to teams or human review. Build and execute it on invented
-   requests, submit a custom request, or change requirements and author a new version. The interpreter
-   runs the actual saved rules; a business worker agent is unnecessary for this deterministic flow.
-   Authoring is scripted with no live AI, tickets or external systems. Definitions and trace are optional.
+3. **Author and monitor #1**: the request and scoped tools let a bounded authoring agent create
+   the actual graph used in demo1. Both surfaces share one model. Child steps, human-review stops,
+   outcomes and limits feed its monitor. A lookup-limit handoff can produce a retained revision that
+   sends missing context to a person earlier. Parent versions, tools and child runs are bounded too.
+   Authoring and model replies are scripted; graph execution and monitoring are local state transitions.
 4. **One design system**: the page is dressed by bdos-design. Pick one of its seven looks and the whole
    canvas changes, with the measures each look passes and the compile call an agent would make.
    `looks/*.css` and `looks/looks.js` are compiled from bdos-design (`bdos-design compile`, `bdos-design looks --json`).
@@ -28,9 +27,9 @@ python -m http.server 8000
 The site opens in reading view for legibility; the canvas remains available. Link directly to the
 workflow at https://bdo.recd.stream/#r3. Prior usage estimates have been removed from the work example.
 
-The models are separate from their DOM view. `assistant-model.js` coordinates tools and authors
-definitions; `workflow-model.js` executes the authored worker graph and settings. Both expose the same
-state transitions to Node and the browser. `workflow-view.js` binds the authored review surface and optional inspectors.
+`bounded-model.js` owns path definitions, execution, parent tool budgets and monitoring.
+`demos.js` binds demo1; `workflow-view.js` binds demo3 to the same workspace instance.
+Earlier reprint and intake models were retired when this shared model replaced them.
 Run the bounded routine check with:
 
 ```

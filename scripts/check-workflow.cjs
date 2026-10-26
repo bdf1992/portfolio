@@ -14,7 +14,8 @@ const result = spawnSync(process.execPath, args, { cwd: root, timeout: policy.ma
 const elapsed = Date.now()-started;
 const output = (result.stdout || '') + (result.stderr || '');
 const count = Number(output.match(/# tests (\d+)/)?.[1] || 0);
-const coverageLines = output.split('\n').filter(line => /workflow-model\.js|assistant-model\.js|all files/i.test(line));
+const scopedNames = policy.productionSourceScope.map(file=>path.basename(file));
+const coverageLines = output.split('\n').filter(line => /all files/i.test(line) || scopedNames.some(name=>line.includes(name)));
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex');
 const record = { policyVersion:policy.version, profile:policy.profile, at:new Date().toISOString(),
   node:process.version, platform:process.platform, architecture:process.arch, dependencyIdentity:'Node built-in test runner; no third-party test dependencies',

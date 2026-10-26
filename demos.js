@@ -18,126 +18,15 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
     act:      { x: 475, y: 340, label: "Do it", kind: "exact" },
     close:    { x: 245, y: 340, label: "Close the case", kind: "exact" },
   };
-  const LIMIT = { gather: 3, revise: 2 };
-
-  const cases = [
-    {
-      id: "c1",
-      title: "Harbor Street Bakery: the proof doesn't match my order",
-      message: "Hi, the menus we got look different from what we approved. Can you fix it?",
-      classify: [
-        { missing: "which order this is about", given: "the message, the customer's account" },
-        { category: "Reprint request", confidence: 0.91, given: "the message, the order found, its approved proof" },
-      ],
-      gather: [
-        "Found order 58213: 500 menus, proof v2 approved two days ago. Printed file was v1.",
-      ],
-      drafts: [
-        "Hi Dana, you're right: we printed the earlier version of your menu, not the one you approved. We'll reprint order 58213 at no charge.",
-        "Hi Dana, you're right: we printed the earlier version of your menu, not the one you approved. We'll reprint order 58213 at no charge, and it will ship on Thursday.",
-      ],
-      act: "Opened reprint job RJ-2207 for order 58213 and sent the reply.",
-    },
-    {
-      id: "c2",
-      title: "Pine Ridge School District: we were charged twice",
-      message: "Our card was charged twice for invoice 4471. Please refund one.",
-      classify: [
-        { category: "Billing: duplicate charge", confidence: 0.95, given: "the message, invoice 4471, its two payments" },
-      ],
-      gather: [],
-      drafts: [
-        "Hello, thanks for flagging this. Invoice 4471 was paid twice on the 3rd. We've started a refund of $412.50 for the second payment.",
-        "Hello, thanks for flagging this. Invoice 4471 was paid twice on the 3rd. We've started a refund of $412.50 for the second payment; it usually reaches your card in 3 to 5 business days.",
-      ],
-      act: "Opened refund RF-318 for $412.50, queued for finance, and sent the reply.",
-    },
-    {
-      id: "c3",
-      title: "Maple Lane Realty: can you help with the thing from last week?",
-      message: "Following up on the thing from last week, any update?",
-      classify: [
-        { missing: "which order or job is meant", given: "the message, the customer's account" },
-        { missing: "which order or job is meant", given: "the message, the last lookup" },
-        { missing: "which order or job is meant", given: "the message, the last two lookups" },
-      ],
-      gather: [
-        "No orders placed last week.",
-        "Two open jobs found; neither was mentioned before.",
-        "No earlier email thread from this sender.",
-      ],
-      drafts: [],
-      act: "",
-    },
-  ];
-
-  let C, S;
-  function reset() {
-    C = cases.find((c) => c.id === $("case-pick").value) || cases[0];
-    S = { node: "intake", visited: new Set(), loops: { gather: 0, revise: 0 }, classifyN: 0, log: [], done: false, waiting: false };
-    render();
-  }
-  function log(node, given, result, extra) {
-    S.log.push({ node, kind: nodes[node].kind, given, result, extra });
-  }
-
-  function step() {
-    if (S.done || S.waiting) return;
-    S.visited.add(S.node);
-    switch (S.node) {
-      case "intake":
-        log("intake", "the incoming email", "Opened a case and attached the message.");
-        S.node = "classify"; break;
-      case "classify": {
-        const r = C.classify[Math.min(S.classifyN++, C.classify.length - 1)];
-        if (r.missing) { log("classify", r.given, `Not enough to go on: missing ${r.missing}.`); S.node = "gather"; }
-        else { log("classify", r.given, `${r.category} (confidence ${r.confidence}).`); S.node = "draft"; }
-        break;
-      }
-      case "gather":
-        if (S.loops.gather >= LIMIT.gather) {
-          log("gather", "the loop counter", `Lookup limit of ${LIMIT.gather} reached. Stopping instead of guessing.`);
-          S.node = "handoff"; break;
-        }
-        log("gather", "order history, open jobs, past email", C.gather[S.loops.gather]);
-        S.loops.gather++;
-        S.node = "classify"; break;
-      case "draft":
-        log("draft", "the request, what was found, the reply guidelines", "Wrote a draft for a person to check.", C.drafts[S.loops.revise]);
-        S.node = "confirm"; S.waiting = true; break;
-      case "act":
-        log("act", "the approved draft", C.act);
-        S.node = "close"; break;
-      case "close":
-        log("close", "the whole case", "Closed. Every step above stays on the case.");
-        S.done = true; break;
-      case "handoff":
-        log("handoff", "everything tried so far", "Handed to a person with the three lookups attached, so nobody starts over.");
-        S.done = true; break;
-    }
-    render();
-  }
-
-  function decide(ok) {
-    if (!S.waiting) return;
-    S.waiting = false;
-    S.visited.add("confirm");
-    if (ok) { log("confirm", "the draft", "Approved by a person."); S.node = "act"; }
-    else if (S.loops.revise < LIMIT.revise) {
-      S.loops.revise++;
-      log("confirm", "the draft", "Sent back by a person: add when it will arrive.");
-      S.node = "draft";
-    } else {
-      log("confirm", "the draft", `Sent back a third time. Revision limit of ${LIMIT.revise} reached.`);
-      S.node = "handoff";
-    }
-    render();
-  }
-
-  function runToStop() {
-    let guard = 30;
-    while (!S.done && !S.waiting && guard--) step();
-  }
+  const system=window.boundedSystem=BoundedModel.createSystem();
+  const cases=BoundedModel.cases;
+  let C,S,LIMIT,view;
+  function act(fn){try{fn();$("r1-runtime-note").textContent='';}catch(error){$("r1-runtime-note").textContent=error.message;}render();}
+  function reset(){act(()=>system.start($("case-pick").value||cases[0].id));}
+  function ensureRun(){if(!system.snapshot().current)system.start($("case-pick").value||cases[0].id);}
+  function step(){act(()=>{ensureRun();system.step();});}
+  function runToStop(){act(()=>{ensureRun();system.runToStop();});}
+  function decide(ok){act(()=>system.decide(ok));}
 
   function edge(a, b, opts = {}) {
     const A = nodes[a], B = nodes[b];
@@ -163,18 +52,32 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
     const kindName = { model: "model", exact: "exact logic", person: "person" };
     let s = `<svg viewBox="0 0 720 410" role="img" aria-label="Agent graph">
       <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>`;
-    s += edge("intake", "classify");
-    s += edge("classify", "draft", { label: "clear" });
-    s += edge("classify", "gather", { off: -22, label: "missing info", lx: 286, ly: 130, anchor: "end" });
-    s += edge("gather", "classify", { off: 22, loop: true, label: `max ${LIMIT.gather} loops`, lx: 354, ly: 130, anchor: "start" });
-    s += edge("gather", "handoff", { label: "limit reached", ly: 193 });
-    s += edge("draft", "confirm", { off: -22 });
-    s += edge("confirm", "draft", { off: 22, loop: true, label: `sent back, max ${LIMIT.revise}`, lx: 584, ly: 130, anchor: "start" });
-    s += edge("confirm", "act", { label: "approved", lx: 562, ly: 290, anchor: "start" });
-    s += edge("act", "close");
+    const path=view.current?.path||view.path;
+    for(const link of path.edges){
+      if(link.from==='classify'&&link.to==='handoff'){
+        s+=`<path class="edge" d="M320,70 V110 H90 V180" marker-end="url(#arrow)"/><text class="edge-label" x="200" y="100" text-anchor="middle">missing info → person</text>`;
+        continue;
+      }
+      if(link.from==='confirm'&&link.to==='handoff'){
+        s+=`<path class="edge loop" d="M475,205 H442 V272 H190 V205 H165" marker-end="url(#arrow)"/><text class="edge-label" x="320" y="263" text-anchor="middle">revision limit → person</text>`;
+        continue;
+      }
+      const key=link.from+'>'+link.to;
+      const styles={
+        'classify>draft':{label:'clear'},
+        'classify>gather':{off:-22,label:'missing info',lx:286,ly:130,anchor:'end'},
+        'gather>classify':{off:22,loop:true,label:`max ${LIMIT.gather} loops`,lx:354,ly:130,anchor:'start'},
+        'gather>handoff':{label:'limit reached',ly:193},
+        'draft>confirm':{off:-22},
+        'confirm>draft':{off:22,loop:true,label:`sent back, max ${LIMIT.revise}`,lx:584,ly:130,anchor:'start'},
+        'confirm>act':{label:'approved',lx:562,ly:290,anchor:'start'}
+      };
+      s+=edge(link.from,link.to,styles[key]||{});
+    }
     for (const [id, n] of Object.entries(nodes)) {
+      if(!path.nodes.includes(id))continue;
       const cls = ["node", n.kind === "person" ? "person" : "", S.node === id && !S.done ? "current" : "", S.visited.has(id) ? "visited" : ""].join(" ");
-      s += `<g class="${cls}"><rect x="${n.x}" y="${n.y}" width="${W}" height="${H}" rx="9"/>
+      s += `<g class="${cls}" data-node="${id}" role="button" tabindex="0" aria-label="Inspect ${n.label}"><rect x="${n.x}" y="${n.y}" width="${W}" height="${H}" rx="9"/>
         <text x="${n.x + 10}" y="${n.y + 19}">${n.label}</text>
         <text class="kind" x="${n.x + 10}" y="${n.y + 36}">${kindName[n.kind]}</text></g>`;
     }
@@ -184,19 +87,26 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
   }
 
   function render() {
+    view=system.snapshot();
+    const run=view.current;
+    C=cases.find(item=>item.id===(run?.caseId||$("case-pick").value))||cases[0];
+    S={node:run?.node||'intake',visited:new Set(run?.visited||[]),loops:run?.loops||{gather:0,revise:0},log:run?.log||[],done:!!run&&['complete','handoff','budget_exhausted'].includes(run.status),waiting:run?.status==='review'};
+    LIMIT=(run?.path||view.path).limits;
+    $("r1-path-source").textContent=view.path.version?`Agent-authored path v${view.path.version} · monitored in #3`:'Base example · author a monitored version in #3';
+    if(run)$("case-pick").value=run.caseId;
     renderGraph();
     $("case-body").innerHTML = `<div class="muted">Message</div><div>${esc(C.message)}</div>`;
     $("step").disabled = S.done || S.waiting;
     $("run").disabled = S.done || S.waiting;
     if (S.waiting) {
       const canRevise = S.loops.revise < LIMIT.revise;
-      $("confirm").innerHTML = `<div class="stack"><div class="draft">${esc(C.drafts[S.loops.revise])}</div>
+      $("confirm").innerHTML = `<div class="stack"><div class="draft">${esc(run?.draft||C.drafts[Math.min(S.loops.revise,C.drafts.length-1)]||'')}</div>
         <div class="row"><button class="btn person primary" id="ok">Approve</button>
         <button class="btn person" id="back">${canRevise ? "Send back" : "Send back (limit reached)"}</button></div></div>`;
       $("ok").onclick = () => decide(true);
       $("back").onclick = () => decide(false);
     } else if (S.done) {
-      $("confirm").innerHTML = `<span class="badge ${S.node === "handoff" ? "wait" : "ok"}">${S.node === "handoff" ? "With a person" : "Closed"}</span>`;
+      $("confirm").innerHTML = `<span class="badge ${run.status==='complete'?'ok':'wait'}">${run.status==='complete'?'Closed':'With a person'}</span>`;
     } else $("confirm").innerHTML = "";
     $("log").innerHTML = S.log.length
       ? S.log.slice().reverse().map((e) => `<li><div class="head"><b>${nodes[e.node].label}</b><span class="badge ${e.kind}">${e.kind === "exact" ? "exact logic" : e.kind}</span></div>
@@ -212,7 +122,14 @@ const redraw = () => window.canvasRedraw && window.canvasRedraw();
   $("step").onclick = step;
   $("run").onclick = runToStop;
   $("reset").onclick = reset;
-  reset();
+  $("graph").onclick=event=>{
+    const node=event.target.closest('[data-node]');if(!node)return;
+    const id=node.dataset.node;
+    const tools={intake:'Read the incoming request.',classify:'Use the request and selected context to decide the next branch.',gather:`Look up context, at most ${LIMIT.gather} times.`,draft:'Prepare a reply; it cannot bypass the person.',confirm:`A person approves or sends back, at most ${LIMIT.revise} revisions.`,act:'Simulate the approved action in this example.',close:'Keep the outcome and run history.',handoff:'Stop and pass the case and attempted work to a person.'};
+    $("r1-runtime-note").textContent=nodes[id].label+': '+tools[id];
+  };
+  $("graph").onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();event.target.closest('[data-node]')?.dispatchEvent(new MouseEvent('click',{bubbles:true}));}};
+  system.subscribe(render);render();
 })();
 
 /* =====================================================================
