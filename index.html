@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandon Freeman</title>
-<meta name="description" content="Four small demos of AI operating environments: bounded agents, one rule set across a UI, API and MCP server, and authority from explicit grants with a receipt for every action.">
+<meta name="description" content="Brandon Freeman builds agent systems and software delivery tools. Customize a workflow, start a fresh agent under grants, and compare versioned runs across business workspaces.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
@@ -18,7 +18,7 @@
     <button data-go="all">Overview</button>
     <button data-go="r1">1 · Bounded agents</button>
     <button data-go="r2">2 · One rule set</button>
-    <button data-go="r3">3 · Grants and receipts</button>
+    <button data-go="r3">3 · Workflow workspace</button>
     <button data-go="r4">4 · One design system</button>
   </div>
   <div class="pill zoom-only">
@@ -38,14 +38,15 @@
   <!-- ===================== intro ===================== -->
   <article class="card intro" id="intro" style="--x:2110px;--y:0px;--w:620px">
     <h1>Brandon Freeman</h1>
-    <p class="muted">Product Manager at Print Reach · <a href="https://github.com/bdf1992">github.com/bdf1992</a> · <a href="mailto:bdf1992.fb@gmail.com">bdf1992.fb@gmail.com</a></p>
-    <p class="lede">I build environments where people and AI agents work on the same records under the same rules. These are four small demos of how I approach that.</p>
+    <p class="muted">Product Owner and Manager at Print Reach · <a href="https://github.com/bdf1992">github.com/bdf1992</a> · <a href="mailto:bdf1992.fb@gmail.com">bdf1992.fb@gmail.com</a></p>
+    <p class="lede">I design and build systems where people and AI agents work on the same records under the same rules. These four interactive examples show how I approach that.</p>
+    <p><a class="intro-link" href="#r3">Try a reusable workflow across two business workspaces →</a></p>
     <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo. The page itself is styled by the design system in demo 4.</p>
   </article>
 
   <!-- ===================== region 1 ===================== -->
   <section class="frame" id="r1" style="--x:0px;--y:460px;--w:1120px;--h:920px">
-    <header><h2>1 · Bounded agents</h2><span class="chip">A mock of the agent system I run at work</span></header>
+    <header><h2>1 · Bounded agents</h2><span class="chip">Based on the AI product I own at work</span></header>
   </section>
 
   <article class="card graph" id="r1-graph" style="--x:40px;--y:540px;--w:580px">
@@ -74,7 +75,7 @@
 
   <article class="card note" id="r1-note" style="--x:40px;--y:1050px;--w:580px">
     <h3>What is real here</h3>
-    <p class="small">At Print Reach I launched and still own an internal AI agent system that runs across four products and handles about 5,000 conversations a month. The ideas on this card are the ones it is built on: a graph engine with loops bounds each step, the context each step gets is chosen rather than left to the model, a person confirms the decisions that matter, and every action and its result stays on the case.</p>
+    <p class="small">At Print Reach I am the product owner and manager for an internal AI system across four products, working with engineering and colleagues. Its design uses a graph with bounded loops, context chosen for each step, human review and recorded actions and results. My hands-on agent work there primarily turns project requirements into functional mocks and prototypes.</p>
     <p class="small muted">This page shows none of the real system. The graph, the requests and the replies are invented.</p>
   </article>
 
@@ -125,45 +126,72 @@
   </article>
 
   <!-- ===================== region 3 ===================== -->
-  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:1020px">
-    <header><h2>3 · Grants and receipts</h2><span class="chip">Soveraeign and my workstation · experimental</span></header>
+  <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:2290px">
+    <header><h2>3 · One workflow, different businesses</h2><span class="chip">An interactive model of the systems I build</span></header>
   </section>
 
-  <article class="card" id="r3-contract" style="--x:2520px;--y:540px;--w:340px">
-    <h3>Define an agent's job</h3>
-    <p class="small muted">A person writes a contract: what to do, which files it may touch, how the result is checked, and the most the agent may claim.</p>
-    <div class="stack">
-      <label class="field">Steps<textarea id="c-steps" rows="2">Fix the date format in the invoice export.</textarea></label>
-      <label class="field">May change<input type="text" id="c-paths" value="src/export.py, tests/test_export.py"></label>
-      <label class="field">Checked by<input type="text" id="c-accept" value="pytest tests/test_export.py"></label>
-      <label class="field">Most it may claim
-        <select id="c-ceiling"><option value="tested">tested</option></select>
-      </label>
-      <button class="btn person primary" id="c-write">Person: write the contract</button>
+  <article class="card wf-workspace" id="r3-workspace" style="--x:2520px;--y:540px;--w:1040px">
+    <div id="workflow-workspace">
+      <div class="wf-intro">
+        <div><span class="wf-eyebrow">Workflow workspace</span><h3>Define the work. Give a fresh agent what it needs.</h3>
+          <p>One base workflow serves two business workspaces. Customize it, grant access, and inspect what actually happens.</p></div>
+        <button class="btn small" id="wf-reset">Reset example</button>
+      </div>
+      <p class="small muted wf-disclosure">Simulated agents and tools, invented data, entirely in this browser. No model calls, company systems or external messages. Refreshing clears the example.</p>
+      <div class="wf-columns">
+        <section class="wf-definition" aria-labelledby="wf-human-title">
+          <div class="wf-section-head"><span class="wf-index">01</span><div><h4 id="wf-human-title">The human workspace</h4><p class="small muted">A warm seat keeps the local definition.</p></div></div>
+          <div class="row" id="wf-workspaces" aria-label="Business workspace"></div>
+          <p class="small muted" id="wf-definition-version"></p>
+          <div class="stack wf-form">
+            <label class="field">Customer request<textarea id="wf-request" rows="2" maxlength="500"></textarea></label>
+            <label class="field">Local instruction<textarea id="wf-focus" rows="2" maxlength="500"></textarea></label>
+            <div class="wf-form-row">
+              <label class="field">Channel<select id="wf-channel" aria-label="Channel"><option>Email</option><option>Customer portal</option></select></label>
+              <label class="field">Personalization<select id="wf-tone" aria-label="Personalization"><option value="concise">Concise</option><option value="warm">Warm and reassuring</option></select></label>
+            </div>
+            <button class="btn" id="wf-save">Save customization</button>
+            <p class="small muted" id="wf-save-state"></p>
+          </div>
+          <h5>What the agent may do</h5>
+          <label class="toggle small"><input type="checkbox" id="wf-grant-read"> Read the service policy</label>
+          <label class="toggle small"><input type="checkbox" id="wf-grant-draft"> Prepare a response draft</label>
+          <p class="small muted" id="wf-grant-scope"></p>
+          <button class="btn primary wf-start" id="wf-start">Start a fresh agent</button>
+        </section>
+
+        <section class="wf-run" aria-labelledby="wf-run-title">
+          <div class="wf-section-head"><span class="wf-index">02</span><div><h4 id="wf-run-title">The agent starts cold</h4><p class="small muted">A new run receives explicit context.</p></div></div>
+          <div class="wf-run-heading"><strong id="wf-run-label"></strong><span id="wf-status" class="badge exact"></span></div>
+          <details class="wf-packet" open><summary>Context handed to this agent</summary><pre id="wf-packet"></pre></details>
+          <ol class="wf-graph" id="wf-graph" aria-label="Workflow nodes"></ol>
+          <div class="wf-inspector"><strong id="wf-node-title"></strong><p id="wf-node-detail"></p></div>
+          <div class="row wf-run-controls"><button class="btn" id="wf-step" disabled>Next step</button><button class="btn primary" id="wf-run" disabled>Run to next stop</button></div>
+          <div class="wf-draft"><span class="wf-eyebrow">Result</span><p id="wf-output"></p></div>
+          <div class="row"><button class="btn person" id="wf-accept" disabled>Person accepts</button><button class="btn person" id="wf-reject" disabled>Person rejects</button><button class="btn small" id="wf-send" disabled>Agent tries to send</button></div>
+        </section>
+      </div>
+
+      <div class="wf-live-notice" role="status" aria-live="polite" id="wf-notice">Start an agent without grants to see where it must stop.</div>
+      <section class="wf-observe" aria-labelledby="wf-observe-title">
+        <div class="wf-section-head"><span class="wf-index">03</span><div><h4 id="wf-observe-title">Inspect the run and change what comes next</h4><p class="small muted">The base, agent, tools and workspace all shape the result.</p></div></div>
+        <div class="wf-observe-columns">
+          <div><h5>Versions used by this run</h5><div class="wf-version-list" id="wf-versions"></div>
+            <h5>Current shared components</h5><div class="wf-component-list" id="wf-components"></div>
+            <label class="field">Update one component<select id="wf-component" aria-label="Update one component"><option value="base">Base workflow</option><option value="agent">Agent instructions</option><option value="tool">Policy tool</option><option value="execution">Execution rule</option></select></label>
+            <p class="small muted" id="wf-update-description"></p><button class="btn" id="wf-update">Create next version</button>
+            <p class="small wf-experiment">Try updating the base, then run again. Its new evidence check exposes a gap in the old agent instructions. Update the agent and compare the next run.</p>
+          </div>
+          <div><h5>Trace</h5><p class="small muted" id="wf-attempts"></p><ol class="wf-trace" id="wf-trace"></ol></div>
+        </div>
+      </section>
+      <section class="wf-history" aria-labelledby="wf-history-title"><h4 id="wf-history-title">Compare runs</h4><div id="wf-history"></div></section>
     </div>
   </article>
-
-  <article class="card" id="r3-grants" style="--x:2900px;--y:540px;--w:320px">
-    <h3>Grants</h3>
-    <p class="small muted">The agent can act only where a grant covers it. You play the person here: grant or revoke, then try the agent's buttons.</p>
-    <div id="grants"></div>
+  <article class="card note" id="r3-note" style="--x:2520px;--y:2690px;--w:1040px">
+    <p class="small">My private workstation coordinates repository tasks, written work contracts, resource limits and review evidence. This example makes that approach visible without exposing its source or company data. The policy responses are scripted; the version pinning, grant checks, trace and comparison behavior run here in JavaScript.</p>
   </article>
 
-  <article class="card actions" id="r3-task" style="--x:3260px;--y:540px;--w:300px">
-    <h3 id="t-title">Task T-14</h3>
-    <div class="task-state" id="t-state"></div>
-    <div id="t-actions"></div>
-  </article>
-
-  <article class="card" id="r3-ledger" style="--x:2520px;--y:1010px;--w:1040px">
-    <h3>Receipts</h3>
-    <p class="small muted">Every attempt leaves one, allowed or refused. Each receipt includes the hash of the one before it, so history cannot be quietly rewritten.</p>
-    <div class="ledger-wrap"><table class="ledger" id="ledger"></table></div>
-  </article>
-
-  <article class="card note" id="r3-note" style="--x:2520px;--y:1370px;--w:1040px">
-    <p class="small"><a href="https://github.com/bdf1992/Soveraeign">Soveraeign</a> is a local-first system where people and AI act on the same records, permissions and history. Authority comes from explicit grants, and every action leaves a receipt. I run my own work through a workstation built on these ideas, where agents take written contracts like the one above. It is experimental, and this card is a small reconstruction of it.</p>
-  </article>
 
   <!-- ===================== region 4 ===================== -->
   <section class="frame" id="r4" style="--x:3720px;--y:460px;--w:1120px;--h:920px">
@@ -200,5 +228,7 @@
 <script src="looks/looks.js"></script>
 <script src="canvas.js"></script>
 <script src="demos.js"></script>
+<script src="workflow-model.js"></script>
+<script src="workflow-view.js"></script>
 </body>
 </html>

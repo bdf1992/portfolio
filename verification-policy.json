@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "profile": "routine-change",
+  "entrypoint": "node scripts/check-workflow.cjs",
+  "maximumCollectedCases": 24,
+  "maximumRunnerMilliseconds": 20000,
+  "minimumExecutableLineCoverage": 90,
+  "productionSourceScope": ["workflow-model.js"],
+  "coverageDenominator": "Complete workflow-model.js; native V8 executable-line coverage",
+  "browserAcceptanceScope": ["workflow-view.js", "canvas.js", "index.html", "style.css", "existing demo behavior"],
+  "browserCoverageLimit": "Browser acceptance is behavioral and visual; no UI line-coverage percentage is claimed",
+  "evidenceDirectory": "verification"
+}

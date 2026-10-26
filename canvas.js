@@ -84,9 +84,7 @@
     ["r2-rule", "b", "r2-ui", "t"],
     ["r2-rule", "b", "r2-api", "t"],
     ["r2-rule", "b", "r2-mcp", "t"],
-    ["r3-contract", "r", "r3-grants", "l"],
-    ["r3-grants", "r", "r3-task", "l"],
-    ["r3-task", "b", "r3-ledger", "tr", "every attempt", "live"],
+    ["r3-workspace", "b", "r3-note", "t", "same work, recorded results", "live"],
   ];
   function anchor(b, side) {
     if (side === "t") return [b.x + b.w / 2, b.y];
@@ -97,6 +95,23 @@
   }
   function drawWires() {
     if (document.body.classList.contains("reading")) return;
+    // Each row follows the tallest card above it, including after a look or content change.
+    const regions = [
+      { id: "r1", rows: [["r1-graph", "r1-case"], ["r1-note"]] },
+      { id: "r2", rows: [["r2-ask", "r2-rule"], ["r2-ui", "r2-api", "r2-mcp"]] },
+      { id: "r3", rows: [["r3-workspace"], ["r3-note"]] },
+      { id: "r4", rows: [["r4-pick", "r4-char"], ["r4-api", "r4-note"]] },
+    ];
+    for (const region of regions) {
+      const frame = document.getElementById(region.id);
+      let rowY = frame.offsetTop + 80;
+      for (const row of region.rows) {
+        const cards = row.map(id => document.getElementById(id));
+        cards.forEach(card => card.style.setProperty("--y", `${rowY}px`));
+        rowY += Math.max(...cards.map(card => card.offsetHeight)) + 32;
+      }
+      frame.style.setProperty("--h", `${rowY - frame.offsetTop}px`);
+    }
     const parts = [];
     for (const [a, as, b, bs, label, cls] of links) {
       const A = box(document.getElementById(a)), B = box(document.getElementById(b));
@@ -123,7 +138,7 @@
   // ---- input ----
   const pointers = new Map();
   let pan = null, pinch = null;
-  const interactive = "button, a, input, select, textarea, label, pre, .log, .ledger-wrap, .schem svg, [data-nopan]";
+  const interactive = "button, a, input, select, textarea, label, pre, .log, .ledger-wrap, .wf-trace, #wf-history, .schem svg, [data-nopan]";
 
   viewport.addEventListener("pointerdown", (e) => {
     if (document.body.classList.contains("reading")) return;
@@ -171,7 +186,7 @@
 
   viewport.addEventListener("wheel", (e) => {
     if (document.body.classList.contains("reading")) return;
-    const scroller = e.target.closest(".log, .ledger-wrap, pre");
+    const scroller = e.target.closest(".log, .ledger-wrap, .wf-trace, #wf-history, pre");
     if (scroller && !e.ctrlKey && scroller.scrollHeight > scroller.clientHeight) return;
     e.preventDefault();
     cancelAnimationFrame(anim);
@@ -186,7 +201,7 @@
 
   document.getElementById("zoom-in").onclick = () => zoomAt(viewport.clientWidth / 2, viewport.clientHeight / 2, 1.25);
   document.getElementById("zoom-out").onclick = () => zoomAt(viewport.clientWidth / 2, viewport.clientHeight / 2, 0.8);
-  document.querySelectorAll("#jump button").forEach((b) => (b.onclick = () => go(b.dataset.go)));
+  document.querySelectorAll("#jump button").forEach((b) => (b.onclick = () => { go(b.dataset.go); history.replaceState(null, "", b.dataset.go === "all" ? location.pathname : `#${b.dataset.go}`); }));
 
   // ---- reading view: the same cards in one column, for phones ----
   const modeBtn = document.getElementById("mode");
@@ -200,7 +215,12 @@
 
   window.addEventListener("load", () => {
     drawWires();
-    if (window.innerWidth < 760) setReading(true);
-    else go("all", true);
+    setReading(true);
+    const initial = location.hash.slice(1);
+    if (["r1", "r2", "r3", "r4"].includes(initial)) go(initial, true);
+  });
+  window.addEventListener("hashchange", () => {
+    const id = location.hash.slice(1);
+    if (["r1", "r2", "r3", "r4"].includes(id)) go(id);
   });
 })();
