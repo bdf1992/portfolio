@@ -1,103 +1,73 @@
 (function () {
   'use strict';
-  const host = document.getElementById('workflow-workspace');
-  if (!host) return;
-  let engine = WorkflowModel.createEngine(), selectedRun = null, selectedNode = 'intake';
-  const byId = id => document.getElementById(id);
-  const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-  const names = { intake:'Load context', policy:'Read policy', draft:'Prepare draft', check:'Check evidence', review:'Person reviews' };
-  const nodeDetails = {
-    intake: 'The fresh agent loads this workspace’s saved case, instructions, personalization and pinned versions. Conversation history starts empty.',
-    policy: 'The policy tool can run only under a live read grant for this workspace. Its pinned version decides the remedy window.',
-    draft: 'The agent combines the case, tool result, customization and personalization. A live draft grant is required.',
-    check: 'The updated base requires the draft to cite the policy used. Updating the base can expose a gap in the agent instructions.',
-    review: 'A person accepts or rejects the result. Acceptance does not send it or give the agent another permission.'
-  };
-  const statusLabel = { ready:'Ready', running:'Running', blocked:'Needs a grant', review:'Needs review', accepted:'Draft accepted', rejected:'Draft rejected', needs_revision:'Evidence check failed', budget_exhausted:'Attempt limit reached' };
-  const statusClass = status => status === 'accepted' ? 'ok' : ['needs_revision','budget_exhausted','rejected'].includes(status) ? 'no' : 'wait';
-  function fillForm() {
-    const state = engine.snapshot(), w = state.workspaces[state.activeWorkspace];
-    byId('wf-request').value = w.customization.request;
-    byId('wf-focus').value = w.customization.focus;
-    byId('wf-channel').value = w.customization.channel;
-    byId('wf-tone').value = w.personalization.tone;
-    byId('wf-save-state').textContent = 'Saved definition is ready for a fresh agent.';
+  if (!document.getElementById('workflow-workspace')) return;
+  const fresh=()=>{const instance=AssistantModel.createEngine();instance.setGrant('read',true);return instance;};
+  let engine=fresh(), selected=null, tab='result', selectedStep=0;
+  const el=id=>document.getElementById(id);
+  const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const names={direct:'Direct tool help',automation:'Ordinary automation',delegate:'Agents authoring agents',clarification:'Clarify the request'};
+  const statuses={ready:'Ready',running:'Working',blocked:'Needs permission',complete:'Answered',review:'Ready for review',accepted:'Accepted',rejected:'Rejected',needs_revision:'Check failed',budget_exhausted:'Action limit reached',clarification:'Choose an example'};
+  const badge=status=>status==='complete'||status==='accepted'?'ok':['needs_revision','budget_exhausted','rejected'].includes(status)?'no':'wait';
+  const examples={direct:'What is holding up the work in this business?',automation:'Automate a review list of items waiting more than five days.',delegate:'Build a specialist agent and workflow for handling customer issues in this business.'};
+  const updateDescriptions={base:'Add a required policy citation to the worker workflow.',agent:'Require authored workers to cite the policy they used.',tool:'Change the sample policy window from 7 to 14 days.',execution:'Change the action budget for new requests.',customization:'Revise the saved local business instruction.',personalization:'Switch between concise and warm responses.'};
+  function act(fn) {try {fn();render();}catch(error){el('ca-notice').textContent=error.message;}}
+  function chooseWorkspace(id) {engine.selectWorkspace(id); selected=engine.snapshot().runs.filter(run=>run.workspaceId===id).at(-1)?.id||null;tab='result';el('ca-request').value='';}
+  function ask(text) {act(()=>{selected=engine.submit(text).id;selectedStep=0;tab='result';el('ca-request').value='';if(!el('ca-step-mode').checked)engine.runToStop(selected);el('ca-notice').textContent='The request and any authored artifacts are kept with this run.';});}
+  function recordsTable(records) {return `<table class="ca-records"><thead><tr><th>Item</th><th>Days</th><th>What it needs</th></tr></thead><tbody>${records.map(row=>`<tr><td><strong>${esc(row.id)}</strong><br>${esc(row.name)}</td><td>${row.ageDays}</td><td>${esc(row.reason)}</td></tr>`).join('')}</tbody></table>`;}
+  function definitionCard(title,a) {
+    return `<h5>${esc(title)}</h5><p><strong>${esc(a.id)}</strong> · authored by ${esc(a.createdBy)}</p><p class="small">${esc(a.instructions||a.localInstruction||'A deterministic filter with no agent.')}</p>
+      ${a.allowedTools?`<p class="small muted">Tools: ${a.allowedTools.map(esc).join(', ')}<br>Conversation history: ${a.conversationHistory.length} messages<br>Scope: ${esc(a.workspaceId)}</p>`:''}
+      ${a.nodes?`<ol class="ca-workflow-nodes">${a.nodes.map(node=>`<li>${esc({intake:'Load case',policy:'Read policy',draft:'Prepare draft',check:'Check citation',review:'Person reviews'}[node]||node)}</li>`).join('')}</ol>`:''}
+      ${a.steps?`<ol class="ca-workflow-nodes">${a.steps.map(node=>`<li>${esc(node)}</li>`).join('')}</ol><p class="small muted">Scheduled: no. This example runs the rule on demand.</p>`:''}
+      <details class="ca-json"><summary>Inspect the authored definition</summary><pre>${esc(JSON.stringify(a,null,2))}</pre></details>`;
   }
-  function notice(text) { byId('wf-notice').textContent = text; }
-  function act(fn) {
-    try { fn(); render(); } catch (error) { notice(error.message); }
+  function inspect(run) {
+    const a=run?.artifacts||{}, choices=[['result','Result'],...['engineer','workflow','worker','automation','checks'].filter(key=>a[key]).map(key=>[key,{engineer:'Engineering agent',workflow:'Workflow',worker:'Worker agent',automation:'Rule',checks:'Checks'}[key]])];
+    if(!choices.some(([key])=>key===tab))tab='result';
+    el('ca-artifact-tabs').innerHTML=choices.map(([key,label])=>`<button class="btn small" data-tab="${key}" aria-pressed="${tab===key}">${label}</button>`).join('');
+    el('ca-artifact-tabs').querySelectorAll('button').forEach(button=>button.onclick=()=>{tab=button.dataset.tab;render();});
+    let content='<p class="muted small">Ask a question to see the tools used and anything the assistant creates.</p>';
+    if(run&&tab==='result') {
+      if(run.result?.records)content=`<h5>${run.path==='direct'?'What is waiting':'Review list from the saved rule'}</h5>${recordsTable(run.result.records)}<p class="small muted">Additional agents created: 0</p>`;
+      else if(run.result?.output)content=`<h5>The authored worker’s result</h5><p class="small muted">${esc(run.result.workerId)} · created by ${esc(run.result.createdBy)}</p><p class="ca-result-text">${esc(run.result.output.text)}</p><p class="small">Local instruction: ${esc(run.result.output.focus)}</p><p class="small muted">The authored definition produced this draft. Nothing was sent.</p>`;
+      else content=`<p class="small muted">${run.status==='needs_revision'?'The check caught a problem. Inspect Checks, then use that evidence to revise the agent.':'The result appears as the assistant uses its tools.'}</p>`;
+    }
+    if(run&&['engineer','workflow','worker','automation'].includes(tab))content=definitionCard({engineer:'Engineering agent authored by the assistant',workflow:'Workflow authored by the engineering agent',worker:'Business worker authored by the engineering agent',automation:'An ordinary automation'}[tab],a[tab]);
+    if(run&&tab==='checks')content=`<h5>${a.checks.passed?'Checks passed':'Checks failed'}</h5><p class="small">Tool and workspace scope: ${a.checks.scopeContained?'contained':'refused'}<br>Actual sample execution: ${esc(a.checks.sampleStatus)}</p><p class="small muted">The check runs the authored definition and inspects the resulting behavior.</p>${a.checks.sampleOutput?`<p class="ca-result-text">${esc(a.checks.sampleOutput.text)}</p>`:''}`;
+    el('ca-artifact').innerHTML=content;
   }
   function render() {
-    const state = engine.snapshot(), w = state.workspaces[state.activeWorkspace];
-    const run = state.runs.find(item => item.id === selectedRun);
-    const versions = engine.versions(run ? run.workspaceId : w.id);
-    byId('wf-workspaces').innerHTML = Object.values(state.workspaces).map(item => `<button class="btn" data-workspace="${item.id}" aria-pressed="${item.id === w.id}">${escape(item.name)}</button>`).join('');
-    byId('wf-workspaces').querySelectorAll('button').forEach(button => button.onclick = () => act(() => {
-      engine.selectWorkspace(button.dataset.workspace); selectedRun=engine.snapshot().runs.filter(item=>item.workspaceId===button.dataset.workspace).at(-1)?.id || null; fillForm();
-      notice('Workspace loaded. Its definition and grants are separate from the other business.');
-    }));
-    byId('wf-definition-version').textContent = `Customization v${w.customization.version} · Personalization v${w.personalization.version}`;
-    ['read','draft'].forEach(key => { byId(`wf-grant-${key}`).checked = w.grants[key]; });
-    byId('wf-grant-scope').textContent = `Permissions apply to ${w.name} only. Checked again at each permitted action.`;
-    byId('wf-components').innerHTML = ['base','agent','tool','execution'].map(key => `<span>${escape(WorkflowModel.labels[key])} <b>v${state[key].version}</b></span>`).join('');
-    byId('wf-update-description').textContent = ({base:'Adds a policy-citation check to the base workflow.',agent:'Requires the agent to cite the policy version it used.',tool:'Changes the invented remedy window from 7 to 14 days.',execution:`Changes the attempt budget. Next version allows ${state.execution.version % 2 === 1 ? 2 : 12} attempts.`})[byId('wf-component').value];
-    const nodes = run ? run.nodes : ['intake','policy','draft',...(state.base.checksRequired ? ['check'] : []),'review'];
-    if (!nodes.includes(selectedNode)) selectedNode = nodes[0];
-    byId('wf-graph').innerHTML = nodes.map((key,index) => {
-      const nodeEvents = run ? run.trace.filter(e => e.node === key) : [];
-      const last = nodeEvents.at(-1);
-      const failed = last && ['failed','no grant','stopped'].includes(last.result);
-      const done = run && index < run.position;
-      const current = run && index === Math.min(run.position, nodes.length - 1);
-      return `<li><button class="wf-node ${done?'done':''} ${current?'current':''} ${failed?'failed':''}" data-node="${key}" aria-pressed="${key === selectedNode}"><span class="wf-node-kind">${key === 'review' ? 'Person' : key === 'policy' ? 'Tool' : key === 'check' ? 'Evaluator' : 'Agent'}</span><strong>${names[key]}</strong><span>${last ? escape(last.result) : 'Not run'}</span></button></li>`;
-    }).join('');
-    byId('wf-graph').querySelectorAll('button').forEach(button => button.onclick = () => { selectedNode = button.dataset.node; render(); });
-    byId('wf-node-title').textContent = names[selectedNode];
-    const events = run ? run.trace.filter(e => e.node === selectedNode) : [];
-    byId('wf-node-detail').textContent = events.length ? events.at(-1).detail : nodeDetails[selectedNode];
-    byId('wf-run-label').textContent = run ? `${run.id} · ${run.workspaceName}` : 'Start a fresh agent';
-    byId('wf-status').className = `badge ${run ? statusClass(run.status) : 'exact'}`;
-    byId('wf-status').textContent = run ? statusLabel[run.status] : 'No run yet';
-    byId('wf-versions').innerHTML = run ? Object.entries(run.versions).map(([key,value]) => `<div><span>${escape(WorkflowModel.labels[key])}</span><b>v${value}</b>${versions[key] !== value ? `<span class="badge wait">v${versions[key]} available</span>` : '<span class="wf-current-label">current</span>'}</div>`).join('') : '<p class="muted small">Each run records the base, agent, tool, execution rule, customization and personalization it actually uses.</p>';
-    byId('wf-packet').textContent = run ? `${run.packet.domain} · ${run.packet.channel} · ${run.packet.tone}\n${run.packet.request}\nLocal instruction: ${run.packet.focus}\nConversation history: 0 messages\nGrant scope: ${run.workspaceName}` : 'A cold agent has no previous conversation. Start one to see the saved context it receives.';
-    const runnable = run && ['ready','running','blocked'].includes(run.status);
-    byId('wf-step').disabled = !runnable; byId('wf-run').disabled = !runnable;
-    byId('wf-accept').disabled = !run || run.status !== 'review';
-    byId('wf-reject').disabled = !run || run.status !== 'review';
-    byId('wf-send').disabled = !run;
-    byId('wf-output').textContent = run && run.output ? `${run.output.channel} draft\n${run.output.text}\n\nWorkspace instruction: ${run.output.focus}` : 'The draft will appear here. Nothing is sent from this example.';
-    byId('wf-attempts').textContent = run ? `${run.attempts} / ${run.pins.execution.maxAttempts} attempts used · ${run.trace.length} recorded events` : 'Node results, grant checks and review decisions are recorded as the run progresses.';
-    byId('wf-trace').innerHTML = run ? run.trace.map(event => `<li><span class="wf-event-number">${event.sequence.toString().padStart(2,'0')}</span><div><strong>${escape(event.actor)} · ${escape(names[event.node] || event.node)}</strong> <span class="badge ${['failed','refused','no grant','stopped'].includes(event.result)?'no':'exact'}">${escape(event.result)}</span><p>${escape(event.detail)}</p><small>Live grant revision ${event.grantRevision}</small></div></li>`).join('') : '<li class="muted">No run has started.</li>';
-    byId('wf-history').innerHTML = state.runs.length ? state.runs.slice().reverse().map(item => `<button class="wf-history-item" data-run="${item.id}" aria-pressed="${item.id === selectedRun}"><strong>${item.id} <span>${escape(item.workspaceName)}</span></strong><span class="badge ${statusClass(item.status)}">${statusLabel[item.status]}</span><span class="small muted">Base ${item.versions.base} · Agent ${item.versions.agent} · Tool ${item.versions.tool} · Definition ${item.versions.customization} · Preference ${item.versions.personalization}</span></button>`).join('') : '<p class="muted small">Earlier runs stay available here. Updating a component does not rewrite them.</p>';
-    byId('wf-history').querySelectorAll('button').forEach(button => button.onclick = () => { selectedRun = button.dataset.run; const item=state.runs.find(run=>run.id===selectedRun); engine.selectWorkspace(item.workspaceId); fillForm(); render(); });
-    window.canvasRedraw?.();
+    const state=engine.snapshot(), w=state.workspaces[state.activeWorkspace], run=state.runs.find(item=>item.id===selected);
+    el('ca-workspaces').innerHTML=Object.values(state.workspaces).map(item=>`<button class="btn" data-workspace="${item.id}" aria-pressed="${item.id===w.id}">${esc(item.name)}</button>`).join('');
+    el('ca-workspaces').querySelectorAll('button').forEach(button=>button.onclick=()=>act(()=>chooseWorkspace(button.dataset.workspace)));
+    el('ca-context').textContent=`${w.domain} · saved context v${w.contextVersion} · ${w.preferences.tone} personalization v${w.preferences.version}`;
+    el('ca-thread').innerHTML=w.messages.map(m=>`<div class="ca-message ${m.role==='person'?'person':'assistant'}"><span class="ca-role">${m.role==='person'?'You':'Assistant'}${m.runId?` · ${esc(m.runId)}`:''}</span><p>${esc(m.text)}</p></div>`).join('');el('ca-thread').scrollTop=el('ca-thread').scrollHeight;
+    ['read','write','execute'].forEach(key=>{el(`ca-grant-${key}`).checked=w.grants[key];});
+    el('ca-grant-scope').textContent=`Live permissions for ${w.name}. This example starts with read access in the print workspace. Writing and execution need separate grants.`;
+    el('ca-run-label').textContent=run?`${run.id} · ${names[run.path]}`:'No request yet';el('ca-status').className=`badge ${run?badge(run.status):'exact'}`;el('ca-status').textContent=run?statuses[run.status]:'Ready';
+    el('ca-lineage').innerHTML=`<span>You</span><span>Assistant</span>${run?.artifacts.engineer?'<button data-target="engineer">Engineering agent</button>':''}${run?.artifacts.worker?'<button data-target="worker">Business worker</button>':''}`;
+    el('ca-lineage').querySelectorAll('button').forEach(button=>button.onclick=()=>{tab=button.dataset.target;render();});
+    el('ca-agent-count').textContent=run?.path==='delegate'?`${Number(Boolean(run.artifacts.engineer))+Number(Boolean(run.artifacts.worker))} specialist definitions created`:'No additional agent required';
+    el('ca-plan').innerHTML=run?run.plan.map(([actor,tool,title],i)=>{const entry=run.trace.filter(e=>e.position===i&&e.tool===tool).at(-1);return `<li><button data-step="${i}" class="${run.position===i?'current':''}" aria-pressed="${selectedStep===i}"><span class="ca-step-number">${i+1}</span><span><strong>${esc(title)}</strong><small>${esc(actor)} · ${esc(tool)}</small></span><span class="badge ${entry?.result==='failed'||entry?.result==='refused'?'no':'exact'}">${esc(entry?.result||'pending')}</span></button></li>`;}).join(''):'<li class="small muted">The plan follows the request. Direct help uses tools without spawning a worker.</li>';
+    el('ca-plan').querySelectorAll('button').forEach(button=>button.onclick=()=>{selectedStep=Number(button.dataset.step);const tool=run.plan[selectedStep][1];tab=tool==='workflow.define'?'workflow':tool==='checks.run'?'checks':tool==='automation.define'?'automation':tool==='agents.define'?(run.plan[selectedStep][0]==='Assistant'?'engineer':'worker'):'result';render();});
+    const tool=run?.plan[selectedStep]?.[1],entry=run?.trace.filter(item=>item.position===selectedStep&&item.tool===tool).at(-1);el('ca-step-detail').textContent=entry?.detail||'Select a step to inspect its tool result and anything it created.';
+    const runnable=run&&['ready','running','blocked'].includes(run.status);el('ca-next').disabled=!runnable;el('ca-continue').disabled=!runnable;el('ca-accept').disabled=run?.status!=='review';el('ca-reject').disabled=run?.status!=='review';el('ca-improve').hidden=run?.status!=='needs_revision'||run?.artifacts.checks?.sampleStatus!=='needs_revision';
+    el('ca-trace-count').textContent=run?`Tool trace · ${run.trace.length} events · ${run.actions}/${run.pins.components.execution.maxActions} actions`:'Tool trace';
+    el('ca-trace').innerHTML=run?run.trace.map(e=>`<li><strong>${esc(e.actor)}</strong> → <code>${esc(e.tool)}</code> <span class="badge ${e.result==='failed'||e.result==='refused'?'no':'exact'}">${esc(e.result)}</span><p>${esc(e.detail)}</p><small>Live grant revision ${e.grantRevision}</small></li>`).join(''):'<li>No tools have run.</li>';
+    el('ca-child-trace').innerHTML=run?.artifacts.execution?`<details><summary>Business worker execution</summary><ol>${run.artifacts.execution.trace.map(e=>`<li><strong>${esc(e.actor)} · ${esc(e.node)}</strong><p>${esc(e.detail)}</p></li>`).join('')}</ol></details>`:'';
+    const vector=run?engine.versions(run.workspaceId):null;el('ca-versions').innerHTML=run?Object.entries(run.versions).map(([key,value])=>`<div><span>${AssistantModel.labels[key]}</span><b>v${value}</b><span class="small muted">${vector[key]!==value?`v${vector[key]} available`:'current'}</span></div>`).join(''):'<p class="small muted">Each request retains its starting versions and authored definitions.</p>';
+    el('ca-update-description').textContent=updateDescriptions[el('ca-component').value];
+    el('ca-history').innerHTML=state.runs.length?state.runs.slice().reverse().map(item=>`<button data-run="${item.id}" aria-pressed="${item.id===selected}"><strong>${item.id} · ${esc(item.workspaceName)}</strong><span class="badge ${badge(item.status)}">${statuses[item.status]}</span><small>${names[item.path]}${item.parentId?` · revised from ${item.parentId}`:''}<br>Base ${item.versions.base} · Agent ${item.versions.agent} · Tool ${item.versions.tool} · Context ${item.versions.customization} · Preference ${item.versions.personalization}</small></button>`).join(''):'<p class="small muted">Earlier requests and their artifacts stay available here.</p>';
+    el('ca-history').querySelectorAll('button').forEach(button=>button.onclick=()=>act(()=>{selected=button.dataset.run;engine.selectWorkspace(state.runs.find(item=>item.id===selected).workspaceId);tab='result';selectedStep=0;}));
+    inspect(run);window.canvasRedraw?.();
   }
-  byId('wf-save').onclick = () => act(() => {
-    engine.saveCustomization({request:byId('wf-request').value,focus:byId('wf-focus').value,channel:byId('wf-channel').value,tone:byId('wf-tone').value});
-    fillForm(); notice('Saved. A new run will use this definition; existing runs keep their versions.');
-  });
-  ['wf-request','wf-focus','wf-channel','wf-tone'].forEach(id => byId(id).oninput = () => { byId('wf-save-state').textContent = 'Unsaved edits. Save before starting an agent.'; });
-  ['read','draft'].forEach(key => byId(`wf-grant-${key}`).onchange = () => act(() => {
-    engine.setGrant(key,byId(`wf-grant-${key}`).checked);
-    notice('Live permission changed for this workspace. Existing runs check it again at the next relevant action.');
-  }));
-  byId('wf-start').onclick = () => act(() => {
-    const w = engine.snapshot().workspaces[engine.snapshot().activeWorkspace];
-    if (byId('wf-request').value.trim() !== w.customization.request || byId('wf-focus').value.trim() !== w.customization.focus || byId('wf-channel').value !== w.customization.channel || byId('wf-tone').value !== w.personalization.tone) throw new Error('Save the workspace edits before starting a fresh agent.');
-    selectedRun = engine.startRun().id; selectedNode='intake';
-    notice('Fresh agent started with a pinned context packet and no conversation history.');
-  });
-  byId('wf-step').onclick = () => act(() => { const run=engine.step(selectedRun); selectedNode=run.trace.at(-1).node; });
-  byId('wf-run').onclick = () => act(() => { const run=engine.runToStop(selectedRun); selectedNode=run.nodes[Math.min(run.position,run.nodes.length-1)]; });
-  byId('wf-accept').onclick = () => act(() => { engine.review(selectedRun,true); notice('A person accepted this draft. Nothing was sent.'); });
-  byId('wf-reject').onclick = () => act(() => { engine.review(selectedRun,false); notice('Draft rejected. Its evidence remains available for the next revision.'); });
-  byId('wf-send').onclick = () => act(() => { engine.trySend(selectedRun); notice('Refused: preparing a draft does not grant permission to send it.'); });
-  byId('wf-component').onchange = render;
-  byId('wf-update').onclick = () => act(() => {
-    const kind=byId('wf-component').value, next=engine.updateComponent(kind);
-    notice(`${WorkflowModel.labels[kind]} v${next.version} is ready for new runs. Existing runs retain their pinned version.`);
-  });
-  byId('wf-reset').onclick = () => { engine=WorkflowModel.createEngine(); selectedRun=null; selectedNode='intake'; byId('wf-component').value='base'; fillForm(); notice('Example reset. No saved company data is involved.'); render(); };
-  window.workflowDemo = { snapshot:()=>engine.snapshot(), start:()=>engine.startRun(), step:id=>engine.step(id), render };
-  fillForm(); render();
+  el('ca-form').onsubmit=e=>{e.preventDefault();ask(el('ca-request').value);};document.querySelectorAll('[data-example]').forEach(button=>button.onclick=()=>ask(examples[button.dataset.example]));
+  ['read','write','execute'].forEach(key=>el(`ca-grant-${key}`).onchange=()=>act(()=>{engine.setGrant(key,el(`ca-grant-${key}`).checked);el('ca-notice').textContent='Permission changed for this workspace. Continue the request to retry its next tool.';}));
+  el('ca-next').onclick=()=>act(()=>{const run=engine.advance(selected);selectedStep=Math.min(run.position,run.plan.length-1);});
+  el('ca-continue').onclick=()=>act(()=>{const run=engine.runToStop(selected);selectedStep=Math.min(run.position,run.plan.length-1);tab=run.status==='needs_revision'?'checks':'result';});
+  el('ca-improve').onclick=()=>act(()=>{selected=engine.reviseFromEvidence(selected).id;if(!el('ca-step-mode').checked)engine.runToStop(selected);selectedStep=0;tab='result';el('ca-notice').textContent='The assistant used the failed output to revise the agent instructions. The earlier run is preserved.';});
+  el('ca-accept').onclick=()=>act(()=>engine.review(selected,true));el('ca-reject').onclick=()=>act(()=>engine.review(selected,false));el('ca-component').onchange=render;
+  el('ca-update').onclick=()=>act(()=>{engine.updateComponent(el('ca-component').value);el('ca-notice').textContent='Updated for new requests. Existing requests retain their definitions and versions.';});
+  el('ca-reset').onclick=()=>{engine=fresh();selected=null;tab='result';selectedStep=0;el('ca-component').value='base';el('ca-request').value='';el('ca-step-mode').checked=false;el('ca-notice').textContent='Choose a sample request or write one using the example vocabulary.';render();};
+  window.workflowDemo={snapshot:()=>engine.snapshot(),submit:text=>engine.submit(text),advance:id=>engine.advance(id),render};render();
 })();

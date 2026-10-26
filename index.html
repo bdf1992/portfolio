@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 <link rel="stylesheet" id="look-css" href="looks/night-glass.css">
-<link rel="stylesheet" href="style.css?v=734a05d4b8a8">
+<link rel="stylesheet" href="style.css?v=e4f70c5aac83">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
     <button data-go="all">Overview</button>
     <button data-go="r1">1 · Bounded agents</button>
     <button data-go="r2">2 · One rule set</button>
-    <button data-go="r3">3 · Workflow workspace</button>
+    <button data-go="r3">3 · Assistant workspace</button>
     <button data-go="r4">4 · One design system</button>
   </div>
   <div class="pill zoom-only">
@@ -40,7 +40,7 @@
     <h1>Brandon Freeman</h1>
     <p class="muted">Product Owner and Manager at Print Reach · <a href="https://github.com/bdf1992">github.com/bdf1992</a> · <a href="mailto:bdf1992.fb@gmail.com">bdf1992.fb@gmail.com</a></p>
     <p class="lede">I design and build systems where people and AI agents work on the same records under the same rules. These four interactive examples show how I approach that.</p>
-    <p><a class="intro-link" href="#r3">Try a reusable workflow across two business workspaces →</a></p>
+    <p><a class="intro-link" href="#r3">Follow an assistant from a business question to a working solution →</a></p>
     <p class="small muted">Each one runs in your browser on made-up data. Nothing here comes from a real company's systems. Use the buttons at the top to jump to a demo. The page itself is styled by the design system in demo 4.</p>
   </article>
 
@@ -127,70 +127,34 @@
 
   <!-- ===================== region 3 ===================== -->
   <section class="frame" id="r3" style="--x:2480px;--y:460px;--w:1120px;--h:2290px">
-    <header><h2>3 · One workflow, different businesses</h2><span class="chip">An interactive model of the systems I build</span></header>
+    <header><h2>3 · An assistant with a workspace</h2><span class="chip">Tools, ordinary automation and agent engineering</span></header>
   </section>
-
   <article class="card wf-workspace" id="r3-workspace" style="--x:2520px;--y:540px;--w:1040px">
     <div id="workflow-workspace">
-      <div class="wf-intro">
-        <div><span class="wf-eyebrow">Workflow workspace</span><h3>Define the work. Give a fresh agent what it needs.</h3>
-          <p>One base workflow serves two business workspaces. Customize it, grant access, and inspect what actually happens.</p></div>
-        <button class="btn small" id="wf-reset">Reset example</button>
-      </div>
-      <p class="small muted wf-disclosure">Simulated agents and tools, invented data, entirely in this browser. No model calls, company systems or external messages. Refreshing clears the example.</p>
-      <div class="wf-columns">
-        <section class="wf-definition" aria-labelledby="wf-human-title">
-          <div class="wf-section-head"><span class="wf-index">01</span><div><h4 id="wf-human-title">The human workspace</h4><p class="small muted">A warm seat keeps the local definition.</p></div></div>
-          <div class="row" id="wf-workspaces" aria-label="Business workspace"></div>
-          <p class="small muted" id="wf-definition-version"></p>
-          <div class="stack wf-form">
-            <label class="field">Customer request<textarea id="wf-request" rows="2" maxlength="500"></textarea></label>
-            <label class="field">Local instruction<textarea id="wf-focus" rows="2" maxlength="500"></textarea></label>
-            <div class="wf-form-row">
-              <label class="field">Channel<select id="wf-channel" aria-label="Channel"><option>Email</option><option>Customer portal</option></select></label>
-              <label class="field">Personalization<select id="wf-tone" aria-label="Personalization"><option value="concise">Concise</option><option value="warm">Warm and reassuring</option></select></label>
-            </div>
-            <button class="btn" id="wf-save">Save customization</button>
-            <p class="small muted" id="wf-save-state"></p>
-          </div>
-          <h5>What the agent may do</h5>
-          <label class="toggle small"><input type="checkbox" id="wf-grant-read"> Read the service policy</label>
-          <label class="toggle small"><input type="checkbox" id="wf-grant-draft"> Prepare a response draft</label>
-          <p class="small muted" id="wf-grant-scope"></p>
-          <button class="btn primary wf-start" id="wf-start">Start a fresh agent</button>
+      <div class="ca-intro"><div><span class="ca-eyebrow">From a conversation to working systems</span><h3>Ask for help. Follow the work.</h3><p>The assistant can use tools directly, write an ordinary automation, or prepare engineering agents that author other agents and workflows.</p></div><button class="btn small" id="ca-reset">Reset example</button></div>
+      <p class="small muted ca-disclosure">Scripted conversation and simulated agents; no AI model calls. Invented data, local definitions and executions. No company systems or recurring schedules are connected.</p>
+      <div class="row" id="ca-workspaces" aria-label="Business workspace"></div><p class="small muted" id="ca-context"></p>
+      <div class="ca-columns">
+        <section class="ca-conversation" aria-labelledby="ca-talk-title">
+          <h4 id="ca-talk-title">Talk to the assistant</h4><p class="small muted">This workspace keeps the conversation. New specialist agents receive explicit briefs, with no inherited chat history.</p>
+          <div class="ca-examples" aria-label="Sample requests"><button class="btn small" data-example="direct">Find blocked work</button><button class="btn small" data-example="automation">Create a review rule</button><button class="btn small" data-example="delegate">Build a specialist agent</button></div>
+          <div class="ca-thread" id="ca-thread" aria-label="Conversation"></div>
+          <form id="ca-form"><label class="field" for="ca-request">Your request</label><textarea id="ca-request" rows="2" maxlength="500" placeholder="Ask what is blocked, automate a daily review, or build an agent…"></textarea><div class="row"><button class="btn primary" type="submit">Ask assistant</button><label class="toggle small"><input id="ca-step-mode" type="checkbox"> Step through tool calls</label></div></form>
+          <details class="ca-permissions" open><summary>Permissions in this workspace</summary><label class="toggle small"><input id="ca-grant-read" type="checkbox"> Read records and context</label><label class="toggle small"><input id="ca-grant-write" type="checkbox"> Create or revise draft definitions</label><label class="toggle small"><input id="ca-grant-execute" type="checkbox"> Run sample tools and checks</label><p class="small muted" id="ca-grant-scope"></p></details>
+          <div class="row ca-controls"><button class="btn" id="ca-next" disabled>Next action</button><button class="btn primary" id="ca-continue" disabled>Continue to next stop</button><button class="btn" id="ca-improve" hidden>Use this evidence to revise the agent</button></div>
+          <p role="status" aria-live="polite" id="ca-notice" class="small ca-notice">Choose a sample request, or write one using the example vocabulary.</p>
         </section>
-
-        <section class="wf-run" aria-labelledby="wf-run-title">
-          <div class="wf-section-head"><span class="wf-index">02</span><div><h4 id="wf-run-title">The agent starts cold</h4><p class="small muted">A new run receives explicit context.</p></div></div>
-          <div class="wf-run-heading"><strong id="wf-run-label"></strong><span id="wf-status" class="badge exact"></span></div>
-          <details class="wf-packet" open><summary>Context handed to this agent</summary><pre id="wf-packet"></pre></details>
-          <ol class="wf-graph" id="wf-graph" aria-label="Workflow nodes"></ol>
-          <div class="wf-inspector"><strong id="wf-node-title"></strong><p id="wf-node-detail"></p></div>
-          <div class="row wf-run-controls"><button class="btn" id="wf-step" disabled>Next step</button><button class="btn primary" id="wf-run" disabled>Run to next stop</button></div>
-          <div class="wf-draft"><span class="wf-eyebrow">Result</span><p id="wf-output"></p></div>
-          <div class="row"><button class="btn person" id="wf-accept" disabled>Person accepts</button><button class="btn person" id="wf-reject" disabled>Person rejects</button><button class="btn small" id="wf-send" disabled>Agent tries to send</button></div>
+        <section class="ca-inspect" aria-labelledby="ca-inspect-title"><div class="ca-run-heading"><h4 id="ca-inspect-title">Inspect the work</h4><span class="badge exact" id="ca-status"></span></div><p class="small" id="ca-run-label"></p><div class="ca-lineage" id="ca-lineage" aria-label="Who authors whom"></div><p class="small muted" id="ca-agent-count"></p>
+          <ol class="ca-plan" id="ca-plan" aria-label="Plan and tool calls"></ol><p class="small ca-step-detail" id="ca-step-detail"></p>
+          <div class="ca-artifact-tabs" id="ca-artifact-tabs" aria-label="Artifacts"></div><div class="ca-artifact" id="ca-artifact"></div>
+          <div class="row ca-review"><button class="btn person" id="ca-accept" disabled>Person accepts</button><button class="btn person" id="ca-reject" disabled>Person rejects</button></div>
+          <details class="ca-trace-details"><summary id="ca-trace-count">Tool trace</summary><ol class="ca-trace" id="ca-trace"></ol><div id="ca-child-trace"></div></details>
         </section>
       </div>
-
-      <div class="wf-live-notice" role="status" aria-live="polite" id="wf-notice">Start an agent without grants to see where it must stop.</div>
-      <section class="wf-observe" aria-labelledby="wf-observe-title">
-        <div class="wf-section-head"><span class="wf-index">03</span><div><h4 id="wf-observe-title">Inspect the run and change what comes next</h4><p class="small muted">The base, agent, tools and workspace all shape the result.</p></div></div>
-        <div class="wf-observe-columns">
-          <div><h5>Versions used by this run</h5><div class="wf-version-list" id="wf-versions"></div>
-            <h5>Current shared components</h5><div class="wf-component-list" id="wf-components"></div>
-            <label class="field">Update one component<select id="wf-component" aria-label="Update one component"><option value="base">Base workflow</option><option value="agent">Agent instructions</option><option value="tool">Policy tool</option><option value="execution">Execution rule</option></select></label>
-            <p class="small muted" id="wf-update-description"></p><button class="btn" id="wf-update">Create next version</button>
-            <p class="small wf-experiment">Try updating the base, then run again. Its new evidence check exposes a gap in the old agent instructions. Update the agent and compare the next run.</p>
-          </div>
-          <div><h5>Trace</h5><p class="small muted" id="wf-attempts"></p><ol class="wf-trace" id="wf-trace"></ol></div>
-        </div>
-      </section>
-      <section class="wf-history" aria-labelledby="wf-history-title"><h4 id="wf-history-title">Compare runs</h4><div id="wf-history"></div></section>
+      <div class="ca-bottom"><section><h4>Versions used by this request</h4><div class="ca-versions" id="ca-versions"></div><details class="ca-updates"><summary>Person changes a component</summary><label class="field">Component<select id="ca-component" aria-label="Component"><option value="base">Base workflow</option><option value="agent">Agent instructions</option><option value="tool">Policy tool</option><option value="execution">Execution rule</option><option value="customization">Local business context</option><option value="personalization">Personalization</option></select></label><p class="small muted" id="ca-update-description"></p><button class="btn" id="ca-update">Update for new requests</button><p class="small muted">Try a stricter base, then build an agent again. Its failed check gives the assistant evidence it can use to revise the worker.</p></details></section><section><h4>Compare requests</h4><div class="ca-history" id="ca-history"></div></section></div>
     </div>
   </article>
-  <article class="card note" id="r3-note" style="--x:2520px;--y:2690px;--w:1040px">
-    <p class="small">My private workstation coordinates repository tasks, written work contracts, resource limits and review evidence. This example makes that approach visible without exposing its source or company data. The policy responses are scripted; the version pinning, grant checks, trace and comparison behavior run here in JavaScript.</p>
-  </article>
+  <article class="card note" id="r3-note" style="--x:2520px;--y:2690px;--w:1040px"><p class="small">My own workstation provides shared tools, scoped work contracts and delivery evidence. This example shows agents operating such an environment: helping directly, building ordinary automation, or authoring agents that use the same systems. The language and business cases are scripted; the authored definitions, lineage, live grants, checks and executions are inspectable JavaScript behavior.</p></article>
 
 
   <!-- ===================== region 4 ===================== -->
@@ -226,9 +190,10 @@
 </main>
 
 <script src="looks/looks.js"></script>
-<script src="canvas.js?v=82eb7efecd2d"></script>
+<script src="canvas.js?v=25ceaf6571ce"></script>
 <script src="demos.js?v=8e279f395ee3"></script>
-<script src="workflow-model.js?v=2654762a984a"></script>
-<script src="workflow-view.js?v=009b5e60972f"></script>
+<script src="workflow-model.js?v=a69c8fda0516"></script>
+<script src="assistant-model.js?v=573bbd657511"></script>
+<script src="workflow-view.js?v=e2c54f1b95ac"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createEngine, evaluateDraft } = require('../workflow-model.js');
+const { createEngine, evaluateDraft, validateWorkflow } = require('../workflow-model.js');
 function enabled(engine) { engine.setGrant('read',true); engine.setGrant('draft',true); return engine; }
 function ready(engine) { return engine.startRun().id; }
 
@@ -107,6 +107,15 @@ test('invalid operations and premature review are refused',()=>{
   assert.throws(()=>e.step('missing')); assert.throws(()=>e.updateComponent('missing'));
   assert.throws(()=>e.setGrant('send',true)); assert.throws(()=>e.setGrant('read','yes'));
   assert.throws(()=>e.review(ready(e),true));
+  assert.equal(validateWorkflow(null),false);
+  assert.equal(validateWorkflow(['intake','policy','draft','draft','review']),false);
+  assert.equal(validateWorkflow(['intake','draft','policy','review']),false);
+  assert.throws(()=>createEngine({nodes:['intake','unknown','draft','review']}));
+  const authored=enabled(createEngine({nodes:['intake','policy','draft','review']}));
+  assert.deepEqual(authored.runToStop(ready(authored)).nodes,['intake','policy','draft','review']);
+  authored.updateComponent('base');assert.throws(()=>authored.startRun());
+  const checked=enabled(createEngine({nodes:['intake','policy','draft','check','review']}));
+  assert.equal(checked.runToStop(ready(checked)).status,'needs_revision');
 });
 test('invalid customization is atomic and unchanged saves retain versions',()=>{
   const e=createEngine(), before=e.versions(); e.saveCustomization({}); e.saveCustomization({tone:'concise'});

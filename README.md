@@ -9,11 +9,15 @@ One pan-and-zoom canvas with four small demos, each running in the browser on in
 2. **One rule set**: one function decides whether a wire may cross a boundary, and the editor, an
    HTTP API and an MCP tool call all ask it, so a person and an agent get the same answer.
    Based on [Schematically](https://github.com/bdf1992/schematically).
-3. **Workflow workspace**: a person customizes a reusable base workflow for a print shop or field
-   service business. A fresh, simulated agent receives the saved definition and no conversation history.
-   Each run pins its base, agent instructions, tool, execution rule, customization and personalization.
-   Live workspace grants are checked at action time. Update components, inspect a policy-citation
-   failure, revise the agent and compare the next run. No real provider or company data is used.
+3. **Assistant workspace**: the conversation is an interface to shared tools. A request can be
+   answered directly from records, become an ordinary deterministic automation, or lead the assistant
+   to prepare an engineering agent. That engineer authors a workflow and a fresh business worker;
+   their actual definitions are checked and executed. The new agents receive explicit briefs without
+   inherited chat history and use tools within live workspace grants. Inspect lineage, definitions,
+   checks and execution; use a failed check to author a revised version. Each request pins its base,
+   instructions, tools, execution rule, local context and personalization. The print example starts
+   with a read grant; writing and execution require separate grants. Conversations are scripted,
+   with no real provider, company data, external actions or recurring schedules.
 4. **One design system**: the page is dressed by bdos-design. Pick one of its seven looks and the whole
    canvas changes, with the measures each look passes and the compile call an agent would make.
    `looks/*.css` and `looks/looks.js` are compiled from bdos-design (`bdos-design compile`, `bdos-design looks --json`).
@@ -27,8 +31,10 @@ python -m http.server 8000
 The site opens in reading view for legibility; the canvas remains available. Link directly to the
 workflow at https://bdo.recd.stream/#r3. Prior usage estimates have been removed from the work example.
 
-The workflow model is separate from its DOM view. `workflow-model.js` exposes the same state transitions
-to Node and the browser; `workflow-view.js` binds the controls. Run the bounded routine check with:
+The models are separate from their DOM view. `assistant-model.js` coordinates tools and authors
+definitions; `workflow-model.js` executes the authored worker graph and settings. Both expose the same
+state transitions to Node and the browser. `workflow-view.js` binds the conversation and inspectors.
+Run the bounded routine check with:
 
 ```
 node scripts/check-workflow.cjs

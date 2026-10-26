@@ -12,7 +12,16 @@
     const expected = `Source: policy v${policy.version}, ${policy.windowDays}-day window.`;
     return { ok: typeof output?.text === 'string' && output.text.includes(expected) };
   }
-  function createEngine() {
+  function validateWorkflow(nodes) {
+    const known=['intake','policy','draft','check','review'];
+    return Array.isArray(nodes) && nodes.length>=4 && nodes.length<=5 && new Set(nodes).size===nodes.length
+      && nodes.every(node=>known.includes(node)) && nodes[0]==='intake' && nodes.at(-1)==='review'
+      && nodes.includes('policy') && nodes.includes('draft') && nodes.indexOf('policy')<nodes.indexOf('draft')
+      && (!nodes.includes('check') || nodes.indexOf('check')>nodes.indexOf('draft'));
+  }
+  function createEngine(options={}) {
+    if (options.nodes && !validateWorkflow(options.nodes)) throw new Error('Invalid authored workflow');
+    const authoredNodes=options.nodes?copy(options.nodes):null;
     const state = {
       activeWorkspace: 'print', sequence: 0, runs: [], updates: [],
       base: { version: 1, name: 'Resolve a customer request', checksRequired: false },
@@ -90,12 +99,13 @@
     }
     function startRun() {
       if (state.runs.length >= 20) throw new Error('Reset the example before starting more runs');
+      if (authoredNodes && state.base.checksRequired && !authoredNodes.includes('check')) throw new Error('The authored workflow omits the required base check');
       const w = workspace();
       const pins = copy({ base: state.base, agent: state.agent, tool: state.tool,
         execution: state.execution, customization: w.customization, personalization: w.personalization });
       const run = { id: `Run ${++state.sequence}`, workspaceId: w.id, workspaceName: w.name,
         versions: versions(), pins, status: 'ready', position: 0, attempts: 0,
-        nodes: ['intake', 'policy', 'draft', ...(pins.base.checksRequired ? ['check'] : []), 'review'],
+        nodes: authoredNodes?copy(authoredNodes):['intake', 'policy', 'draft', ...(pins.base.checksRequired ? ['check'] : []), 'review'],
         packet: { domain: w.domain, request: pins.customization.request, focus: pins.customization.focus,
           channel: pins.customization.channel, tone: pins.personalization.tone, conversationHistory: [],
           grantScope: w.id, grantsAtStart: copy(w.grants) }, output: null, policy: null, trace: [] };
@@ -168,5 +178,5 @@
     return { snapshot: () => copy(state), versions, selectWorkspace, saveCustomization, setGrant,
       updateComponent, startRun, step, runToStop, review, trySend };
   }
-  return { createEngine, evaluateDraft, labels };
+  return { createEngine, evaluateDraft, validateWorkflow, labels };
 });
